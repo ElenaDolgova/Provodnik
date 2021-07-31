@@ -1,15 +1,10 @@
 import javax.swing.*;
-import java.io.File;
 
 public class Main {
 
     public static void main(String[] args) {
-        File fullPath = new File("/Users/elena-dolgova/arcadia/arcadia/mbi/mbi");
         JFrame.setDefaultLookAndFeelDecorated(true);
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame(fullPath);
-            mainFrame.createGUI();
-        });
+        javax.swing.SwingUtilities.invokeLater(MainFrame::new);
     }
 
 
