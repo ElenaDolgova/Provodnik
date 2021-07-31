@@ -5,8 +5,8 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class MainFrame {
     public static final JFrame GLOBAL_FRAME = new JFrame("Vitamin Well");
-    public static final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
     public static final DirectoryScrollPane DIRECTORY_SCROLL_PANE = new DirectoryScrollPane();
+    public static final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
 
     public MainFrame() {
         GLOBAL_FRAME.setDefaultCloseOperation(EXIT_ON_CLOSE);

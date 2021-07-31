@@ -7,7 +7,7 @@ public class FilesScrollPane {
 
     public FilesScrollPane() {
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(Dimensions.DIRECTORY_SCROLL_PANE_WIDTH + 3, 1, Dimensions.FILE_SCROLL_PANE_WIDTH, Dimensions.MAIN_HEIGHT);
+        scrollPane.setBounds(Dimensions.DIRECTORY_SCROLL_PANE_WIDTH + 3, 1, Dimensions.FILE_SCROLL_PANE_WIDTH, Dimensions.FILE_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
     }

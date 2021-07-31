@@ -1,28 +1,50 @@
+import java.io.File;
 import java.nio.file.Path;
+import java.util.Objects;
 
-public class FileLink {
-    private final String name;
-    private final Path path;
+public final class FileLink implements Comparable<FileLink> {
+    private final File file;
 
-    public FileLink(String name, Path path) {
-        this.name = name;
-        this.path = path;
+    public FileLink(File file) {
+        this.file = file;
     }
 
     public String getName() {
-        return name;
+        return file.getName();
     }
 
     public Path getPath() {
-        return path;
+        return file.toPath();
+    }
+
+    public File getFile() {
+        return file;
     }
 
     public boolean isDirectory() {
-        return path.toFile().isDirectory();
+        return file.isDirectory();
     }
 
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public int compareTo(FileLink o) {
+        return file.getName().compareTo(o.getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FileLink fileLink = (FileLink) o;
+        return Objects.equals(file, fileLink.file);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(file);
     }
 }

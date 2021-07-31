@@ -3,11 +3,13 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
  */
-public class DirectoryLink {
+public final class DirectoryLink {
     /**
      * Имя диреткории
      */
@@ -20,10 +22,6 @@ public class DirectoryLink {
     public DirectoryLink(Path path) {
         this.path = path;
         this.directoryName = createDirectoryName(path);
-    }
-
-    public String getFullPath() {
-        return path.toString();
     }
 
     public String getDirectoryName() {
@@ -43,17 +41,15 @@ public class DirectoryLink {
      */
     public JList<FileLink> getDirectoryFiles() {
         DefaultListModel<FileLink> labelJList = new DefaultListModel<>();
-
-        //todo на правой панельке отобразить содержимое папки; обратить внимание на файловую систему. Она должна быть разной для мак оси и винды
-        System.out.println("I am here " + directoryName);
-
         File file = path.toFile();
         if (file.isDirectory()) {
+            //todo тест кейсБ а когда file.listFiles() мб null?
+            // когда не диреткория
+            SortedSet<FileLink> sortedFiles = new TreeSet<>();
             Arrays.stream(Objects.requireNonNull(file.listFiles()))
-                    .forEach(p -> {
-                        System.out.println(p.toString());
-                        labelJList.addElement(new FileLink(p.getName(), p.toPath()));
-                    });
+                    .map(FileLink::new)
+                    .forEach(sortedFiles::add);
+            sortedFiles.forEach(labelJList::addElement);
         }
         return new JList<>(labelJList);
     }
