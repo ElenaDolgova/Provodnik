@@ -15,14 +15,14 @@ import java.util.List;
 public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
     // todo понять, почему /Users/elena-dolgova/arcadia/arcadia/mbi/mbi/ не считает диреторией
-    private static final File START_PATH = new File("/Users/elena-dolgova/Downloads");
+    private static final File START_PATH = new File("/Users/elena-dolgova/Downloads/result");
 
     // плохо, так как не final
     private final JScrollPane jScrollPane;
 
 
     public DirectoryScrollPane() {
-        JList<DirectoryLink> displayDirectory = new JList<>(createDirectoryLinks(START_PATH));
+        JList<LocalDirectory> displayDirectory = new JList<>(createDirectoryLinks(START_PATH));
         MouseListener mouseListener = getMouseListener();
         displayDirectory.addMouseListener(mouseListener);
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
@@ -31,16 +31,16 @@ public class DirectoryScrollPane {
         this.jScrollPane = scrollPane;
     }
 
-    public static DefaultListModel<DirectoryLink> createDirectoryLinks(File fullPath) {
-        List<DirectoryLink> links = new ArrayList<>(fullPath.toPath().getNameCount());
+    public static DefaultListModel<LocalDirectory> createDirectoryLinks(File fullPath) {
+        List<LocalDirectory> links = new ArrayList<>(fullPath.toPath().getNameCount());
         String parent = fullPath.toPath().toAbsolutePath().toString();
         while (parent != null) {
             Path path = Paths.get(parent).toAbsolutePath();
-            DirectoryLink directoryLink = new DirectoryLink(path);
-            links.add(directoryLink);
+            LocalDirectory localDirectory = new LocalDirectory(path);
+            links.add(localDirectory);
             parent = path.toFile().getParent();
         }
-        DefaultListModel<DirectoryLink> labelJList = new DefaultListModel<>();
+        DefaultListModel<LocalDirectory> labelJList = new DefaultListModel<>();
         for (int i = links.size() - 1; i >= 0; --i) {
             labelJList.addElement(links.get(i));
         }
@@ -62,11 +62,11 @@ public class DirectoryScrollPane {
 
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                JList<DirectoryLink> source = (JList<DirectoryLink>) e.getSource();
+                JList<Directory> source = (JList<Directory>) e.getSource();
                 // обновляем содержимое панели с файлами
                 source.getSelectedValue().updateFilesScrollPane();
                 //схлопываем директорию до нажатой
-                DefaultListModel<DirectoryLink> sourceModel = (DefaultListModel<DirectoryLink>) source.getModel();
+                DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) source.getModel();
                 for (int i = sourceModel.getSize() - 1; i > source.getSelectedIndex(); --i) {
                     sourceModel.remove(i);
                 }

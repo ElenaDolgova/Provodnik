@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class FilesScrollPane {
     private final JScrollPane jScrollPane;
@@ -23,26 +25,43 @@ public class FilesScrollPane {
 
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                JList<FileLink> source = (JList<FileLink>) e.getSource();
+                JList<Link> source = (JList<Link>) e.getSource();
 
-                FileLink displayFiles = source.getSelectedValue();
+                Link displayFiles = source.getSelectedValue();
                 // todо тест кейса на добавление не повторяющихся файлов
                 // тест на добавление файлов в директорию
 
-                if (displayFiles.isDirectory()) {
-                    JList<DirectoryLink> displayDirectory =
-                            (JList<DirectoryLink>) MainFrame.DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
-                    DefaultListModel<DirectoryLink> sourceModel = (DefaultListModel<DirectoryLink>) displayDirectory.getModel();
-                    DirectoryLink newDirectory = new DirectoryLink(displayFiles.getPath());
-                    if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
-                        // добавляем новую директорию на панель с директориями
-                        sourceModel.addElement(newDirectory);
-                        // обновляем панельку с фалами
-                        newDirectory.updateFilesScrollPane();
+                if (displayFiles instanceof LocalFileLink && displayFiles.isDirectory()) {
+                    Directory newDirectory = new LocalDirectory(displayFiles);
+                    updatedFilesForLocalDisk(newDirectory);
+                } else {
+                    // todo zip внутри zip
+                    try {
+                        if ("application/zip".equals(Files.probeContentType(displayFiles.createPath()))) {
+                            Directory newDirectory = new ZipDirectory(displayFiles);
+                            updatedFilesForLocalDisk(newDirectory);
+                        } else if (displayFiles.isDirectory() && displayFiles instanceof ZipFileLink zipFileLink) {
+                            Directory newDirectory = new ZipDirectory(zipFileLink, zipFileLink.getZipFile());
+                            updatedFilesForLocalDisk(newDirectory);
+                        }
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
                     }
                 }
             }
         };
+    }
+
+    private static void updatedFilesForLocalDisk(Directory newDirectory) {
+        JList<Directory> displayDirectory =
+                (JList<Directory>) MainFrame.DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
+        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
+        if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
+            // добавляем новую директорию на панель с директориями
+            sourceModel.addElement(newDirectory);
+            // обновляем панельку с фалами
+            newDirectory.updateFilesScrollPane();
+        }
     }
 
     public JScrollPane getScrollPane() {
