@@ -1,16 +1,26 @@
-import java.awt.event.MouseListener;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
+ */
 public class DirectoryLink {
+    /**
+     * Полный путь отображаемой директории
+     */
     private final String fullPath;
+    /**
+     * Имя диреткории
+     */
     private final String directoryName;
-    private final Supplier<String> supplier;
+    /**
+     * Вызывается при нажатии на директорию
+     */
+    private final Supplier<String> mouseClickSupplier;
 
-    public DirectoryLink(String fullPath, String directoryName, Supplier<String> supplier) {
+    public DirectoryLink(String fullPath, String directoryName, Supplier<String> mouseClickSupplier) {
         this.fullPath = fullPath;
         this.directoryName = directoryName;
-        this.supplier = supplier;
+        this.mouseClickSupplier = mouseClickSupplier;
     }
 
     public String getFullPath() {
@@ -21,12 +31,12 @@ public class DirectoryLink {
         return directoryName;
     }
 
-    public Supplier<String> getSupplier() {
-        return supplier;
+    public Supplier<String> getMouseClickSupplier() {
+        return mouseClickSupplier;
     }
 
     @Override
     public String toString() {
-        return directoryName;
+        return getDirectoryName();
     }
 }

@@ -4,13 +4,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.function.Supplier;
 
 public final class LinksCreator {
 
     private LinksCreator() {
     }
 
-    public static DefaultListModel<DirectoryLink> createHyperLinks(File fullPath) {
+    public static DefaultListModel<DirectoryLink> createDirectoryLinks(File fullPath) {
         DefaultListModel<DirectoryLink> labelJList = new DefaultListModel<>();
         createLinks(fullPath).forEach(labelJList::addElement);
         return labelJList;
@@ -31,8 +32,25 @@ public final class LinksCreator {
     }
 
     private static DirectoryLink createDirectoryLink(Path path) {
-        final String directoryName = path.getFileName() == null ? "/" : path.getFileName() + "/";
-        return new DirectoryLink(path.toString(), directoryName, () -> {
+        final String directoryName = createDirectoryName(path);
+        return new DirectoryLink(path.toString(), directoryName, getMouseClickSupplier(path, directoryName));
+    }
+
+    /**
+     * Метод создает имя, отображаемой директории на панели с текущими диреткориями
+     * Если path - это корневая директория, то path.getFileName() возвращает null.
+     */
+    private static String createDirectoryName(Path path) {
+        return path.getFileName() == null ? "/" : path.getFileName() + "/";
+    }
+
+    /**
+     * @param path
+     * @param directoryName
+     * @return
+     */
+    private static Supplier<String> getMouseClickSupplier(Path path, String directoryName) {
+        return () -> {
             // тест кейс:
             // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
             // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
@@ -52,6 +70,6 @@ public final class LinksCreator {
             System.out.println(path.getFileName());
             System.out.println();
             return "";
-        });
+        };
     }
 }

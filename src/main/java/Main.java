@@ -1,13 +1,5 @@
 import javax.swing.*;
-import java.awt.*;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class Main {
 
@@ -15,8 +7,8 @@ public class Main {
         File fullPath = new File("/Users/elena-dolgova/arcadia/arcadia/mbi/mbi");
         JFrame.setDefaultLookAndFeelDecorated(true);
         javax.swing.SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame();
-            mainFrame.createGUI(fullPath);
+            MainFrame mainFrame = new MainFrame(fullPath);
+            mainFrame.createGUI();
         });
     }
 
