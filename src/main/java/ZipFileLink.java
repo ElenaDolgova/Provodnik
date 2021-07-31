@@ -31,6 +31,11 @@ public class ZipFileLink implements Link {
     }
 
     @Override
+    public boolean isFile() {
+        return !entry.isDirectory();
+    }
+
+    @Override
     public String getName() {
         return file.getName();
     }

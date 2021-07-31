@@ -9,4 +9,6 @@ public interface Link extends Comparable<Link> {
     String getName();
 
     File createFile();
+
+    boolean isFile();
 }

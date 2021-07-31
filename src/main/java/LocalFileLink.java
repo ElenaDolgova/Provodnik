@@ -21,6 +21,11 @@ public final class LocalFileLink implements Link {
     }
 
     @Override
+    public boolean isFile() {
+        return file.isDirectory();
+    }
+
+    @Override
     public Path createPath() {
         return file.toPath();
     }

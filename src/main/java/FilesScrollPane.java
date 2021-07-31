@@ -34,6 +34,8 @@ public class FilesScrollPane {
                 if (displayFiles instanceof LocalFileLink && displayFiles.isDirectory()) {
                     Directory newDirectory = new LocalDirectory(displayFiles);
                     updatedFilesForLocalDisk(newDirectory);
+                } else if (displayFiles instanceof LocalFileLink && displayFiles.isDirectory()) {
+
                 } else {
                     // todo zip внутри zip
                     try {
@@ -43,6 +45,8 @@ public class FilesScrollPane {
                         } else if (displayFiles.isDirectory() && displayFiles instanceof ZipFileLink zipFileLink) {
                             Directory newDirectory = new ZipDirectory(zipFileLink, zipFileLink.getZipFile());
                             updatedFilesForLocalDisk(newDirectory);
+                        } else if (displayFiles.isFile() && displayFiles instanceof ZipFileLink zipFileLink) {
+
                         }
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
