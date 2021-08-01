@@ -1,9 +1,6 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -20,18 +17,20 @@ public class ZipDirectory implements Directory {
     private final Path path;
 
     private final ZipFile zipFile;
-
+    /**
+     * Имя родителя zip файла
+     */
     private final String globalParent;
 
     public ZipDirectory(Link displayFiles) throws IOException {
-        this.path = displayFiles.createPath();
-        this.zipFile = new ZipFile(displayFiles.createFile());
+        this.path = displayFiles.getPath();
+        this.zipFile = new ZipFile(displayFiles.getFile());
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = null;
     }
 
     public ZipDirectory(ZipFileLink displayFiles, ZipFile zipFile) {
-        this.path = displayFiles.createPath();
+        this.path = displayFiles.getPath();
         this.zipFile = zipFile;
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = displayFiles.getParent();
@@ -90,11 +89,14 @@ public class ZipDirectory implements Directory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ZipDirectory that = (ZipDirectory) o;
-        return Objects.equals(directoryName, that.directoryName) && Objects.equals(path, that.path);
+        return Objects.equals(directoryName, that.directoryName) &&
+                Objects.equals(path, that.path) &&
+                Objects.equals(zipFile, that.zipFile) &&
+                Objects.equals(globalParent, that.globalParent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(directoryName, path);
+        return Objects.hash(directoryName, path, zipFile, globalParent);
     }
 }

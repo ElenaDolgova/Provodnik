@@ -16,7 +16,7 @@ public class FilesScrollPane {
     }
 
     /**
-     *
+     * Вызывается при нажатии на файл в табе с файлами (в каталоге) {@link MainFrame.FILES_SCROLL_PANE}
      */
     public static MouseAdapter getMouseListener() {
         // тест кейс:
@@ -34,7 +34,6 @@ public class FilesScrollPane {
 
                 // todo zip внутри zip
                 displayFiles.invoke();
-
             }
         };
     }

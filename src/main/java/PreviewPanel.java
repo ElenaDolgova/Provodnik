@@ -11,16 +11,22 @@ public class PreviewPanel extends Component {
 
     public void init() {
         jPanel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
+        initImage();
+        initTextArea();
+        MainFrame.GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
+    }
+
+    private void initImage() {
         jPanel.add(image);
         image.setVisible(false);
+    }
 
+    private void initTextArea() {
         jPanel.add(textArea);
         textArea.setVisible(false);
-
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setEditable(false);
-        MainFrame.GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
     }
 
     public void updateImage(Image inputImage) {
@@ -30,32 +36,23 @@ public class PreviewPanel extends Component {
         image.setVisible(true);
     }
 
+    public void updateTxt(File file) {
+        try {
+            // todo мне не нравится такое чтение по частям
+            try (FileInputStream fileInputStream = new FileInputStream(file);) {
+                updateTxt(fileInputStream);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void updateTxt(InputStream in) {
         image.setVisible(false);
         textArea.setVisible(true);
         try {
             // todo мне не нравится такое чтение по частям
             try (InputStreamReader inputStreamReader = new InputStreamReader(in);
-                 BufferedReader input = new BufferedReader(inputStreamReader)) {
-                String str = input.lines()
-                        .limit(MAX_TEXT_LINES)
-                        .collect(Collectors.joining("\n"));
-                input.close();
-                textArea.read(new StringReader(str), null);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void updateTxt(File file) {
-        image.setVisible(false);
-        textArea.setVisible(true);
-        try {
-            // todo мне не нравится такое чтение по частям
-            try (FileInputStream fileInputStream = new FileInputStream(file);
-                 InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
                  BufferedReader input = new BufferedReader(inputStreamReader)) {
                 String str = input.lines()
                         .limit(MAX_TEXT_LINES)

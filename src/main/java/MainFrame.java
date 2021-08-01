@@ -15,7 +15,6 @@ public class MainFrame {
         GLOBAL_FRAME.setPreferredSize(new Dimension(Dimensions.MAIN_WIDTH, Dimensions.MAIN_HEIGHT));
         GLOBAL_FRAME.getContentPane().add(DIRECTORY_SCROLL_PANE.getScrollPane(), BorderLayout.WEST);
         GLOBAL_FRAME.getContentPane().add(FILES_SCROLL_PANE.getScrollPane(), BorderLayout.CENTER);
-
         PREVIEW_PANEL.init();
 
         GLOBAL_FRAME.pack();

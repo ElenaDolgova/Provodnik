@@ -25,7 +25,7 @@ public final class LocalDirectory implements Directory {
     }
 
     public LocalDirectory(Link localFileLink) {
-        this.path = localFileLink.createPath();
+        this.path = localFileLink.getPath();
         this.directoryName = createDirectoryName(this.path);
     }
 
@@ -42,6 +42,7 @@ public final class LocalDirectory implements Directory {
         return path.getFileName() == null ? "/" : path.getFileName() + "/";
     }
 
+    @Override
     public void updateFilesScrollPane() {
         JList<Link> displayFiles = getDirectoryFiles();
         MainFrame.FILES_SCROLL_PANE.getScrollPane().setViewportView(displayFiles);
@@ -50,7 +51,7 @@ public final class LocalDirectory implements Directory {
 
 
     /**
-     * метод отвечает за отображение файлов на панели с файлами {@link FilesScrollPane}
+     * Метод возвращает список файлов текущей директории
      */
     private JList<Link> getDirectoryFiles() {
         DefaultListModel<Link> labelJList = new DefaultListModel<>();

@@ -10,7 +10,13 @@ import java.util.zip.ZipFile;
 
 public class ZipFileLink implements Link {
     private final ZipFile zipFile;
+    /**
+     * Имя entry, по которому можно найти ZipEntry в zipFile
+     */
     private final String entryName;
+    /**
+     * Имя файла
+     */
     private final String name;
     private final File file;
 
@@ -31,7 +37,7 @@ public class ZipFileLink implements Link {
     }
 
     @Override
-    public Path createPath() {
+    public Path getPath() {
         return file.toPath();
     }
 
@@ -62,7 +68,7 @@ public class ZipFileLink implements Link {
     @Override
     public void invoke() {
         try {
-            if ("application/zip".equals(Files.probeContentType(createPath()))) {
+            if ("application/zip".equals(Files.probeContentType(getPath()))) {
                 // todo zip внутри zip не работает
                 Directory newDirectory = new ZipDirectory(this);
                 // todo не очень нравится, что тут вызывается статический метод,
@@ -75,7 +81,7 @@ public class ZipFileLink implements Link {
 
             String probeContentType = null;
             try {
-                probeContentType = Files.probeContentType(createPath());
+                probeContentType = Files.probeContentType(getPath());
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -101,11 +107,6 @@ public class ZipFileLink implements Link {
 
     public ZipFile getZipFile() {
         return zipFile;
-    }
-
-    @Override
-    public File createFile() {
-        return file;
     }
 
     @Override

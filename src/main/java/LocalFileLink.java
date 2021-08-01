@@ -25,7 +25,7 @@ public final class LocalFileLink implements Link {
 
         String probeContentType = null;
         try {
-            probeContentType = Files.probeContentType(createPath());
+            probeContentType = Files.probeContentType(getPath());
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -40,7 +40,6 @@ public final class LocalFileLink implements Link {
                 if (image != null) {
                     MainFrame.PREVIEW_PANEL.updateImage(image);
                 }
-                return;
             } else if (probeContentType.contains("text")) {
                 MainFrame.PREVIEW_PANEL.updateTxt(getFile());
             }
@@ -78,13 +77,8 @@ public final class LocalFileLink implements Link {
 
 
     @Override
-    public Path createPath() {
+    public Path getPath() {
         return file.toPath();
-    }
-
-    @Override
-    public File createFile() {
-        return file;
     }
 
     @Override

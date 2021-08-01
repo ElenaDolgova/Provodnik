@@ -17,7 +17,6 @@ public class DirectoryScrollPane {
     // todo понять, почему /Users/elena-dolgova/arcadia/arcadia/mbi/mbi/ не считает диреторией
     private static final File START_PATH = new File("/Users/elena-dolgova/Desktop");
 
-    // плохо, так как не final
     private final JScrollPane jScrollPane;
 
 
