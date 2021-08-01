@@ -1,6 +1,9 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -22,7 +25,7 @@ public class ZipDirectory implements Directory {
 
     public ZipDirectory(Link displayFiles) throws IOException {
         this.path = displayFiles.createPath();
-        this.zipFile = new ZipFile(displayFiles.createFile().getAbsolutePath());
+        this.zipFile = new ZipFile(displayFiles.createFile());
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = null;
     }
@@ -55,17 +58,17 @@ public class ZipDirectory implements Directory {
         String currentGlobalParent = null;
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
-            File file = new File(entry.getName());
+            String entryName = entry.getName();
+            File file = new File(entryName);
             if (globalParent == null) {
                 if (file.getParent() == null) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entry, file));
                     currentGlobalParent = file.getName();
                 } else if (file.getParent().equals(currentGlobalParent)) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entry, file));
+                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
                 }
             } else {
                 if (path.toString().equals(file.getParent())) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entry, file));
+                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
                 }
             }
         }
