@@ -1,4 +1,7 @@
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -11,14 +14,37 @@ public final class LocalFileLink implements Link {
         this.name = file.getName();
     }
 
+
+    /**
+     * @return если не изображение, то null
+     */
+    @Override
+    public Image getImage() {
+        // todo долго читается? почему подтормаживает экран?
+        Image image = null;
+        try {
+            image = ImageIO.read(file);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        return image;
+    }
+
+    @Override
     public String getName() {
         return name;
+    }
+
+    public File getFile() {
+        return file;
     }
 
     @Override
     public boolean isDirectory() {
         return file.isDirectory();
     }
+
+
 
     @Override
     public Path createPath() {

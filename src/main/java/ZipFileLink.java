@@ -1,4 +1,8 @@
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -21,6 +25,11 @@ public class ZipFileLink implements Link {
     }
 
     @Override
+    public File getFile() {
+        return file;
+    }
+
+    @Override
     public Path createPath() {
         return file.toPath();
     }
@@ -28,6 +37,17 @@ public class ZipFileLink implements Link {
     @Override
     public boolean isDirectory() {
         return entry.isDirectory();
+    }
+
+    @Override
+    public Image getImage() {
+        Image image = null;
+        try {
+            image = ImageIO.read(file);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        return image;
     }
 
     @Override

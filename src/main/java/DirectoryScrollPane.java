@@ -15,7 +15,7 @@ import java.util.List;
 public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
     // todo понять, почему /Users/elena-dolgova/arcadia/arcadia/mbi/mbi/ не считает диреторией
-    private static final File START_PATH = new File("/Users/elena-dolgova/Downloads/result");
+    private static final File START_PATH = new File("/Users/elena-dolgova/Desktop");
 
     // плохо, так как не final
     private final JScrollPane jScrollPane;
@@ -63,6 +63,9 @@ public class DirectoryScrollPane {
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 JList<Directory> source = (JList<Directory>) e.getSource();
+                // убираем таб с превью
+                PreviewPanel.getImage().setVisible(false);
+                PreviewPanel.getTextArea().setVisible(false);
                 // обновляем содержимое панели с файлами
                 source.getSelectedValue().updateFilesScrollPane();
                 //схлопываем директорию до нажатой

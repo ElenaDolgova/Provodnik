@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
 
@@ -9,4 +10,8 @@ public interface Link extends Comparable<Link> {
     String getName();
 
     File createFile();
+
+    File getFile();
+
+    Image getImage();
 }
