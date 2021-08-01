@@ -1,6 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -34,24 +38,28 @@ public class FilesScrollPane {
                 if (displayFiles instanceof LocalFileLink && displayFiles.isDirectory()) {
                     Directory newDirectory = new LocalDirectory(displayFiles);
                     updatedFilesForLocalDisk(newDirectory);
-                } else if (displayFiles instanceof LocalFileLink && displayFiles.isDirectory()) {
-
-                } else {
-                    // todo zip внутри zip
-                    try {
-                        if ("application/zip".equals(Files.probeContentType(displayFiles.createPath()))) {
-                            Directory newDirectory = new ZipDirectory(displayFiles);
-                            updatedFilesForLocalDisk(newDirectory);
-                        } else if (displayFiles.isDirectory() && displayFiles instanceof ZipFileLink zipFileLink) {
-                            Directory newDirectory = new ZipDirectory(zipFileLink, zipFileLink.getZipFile());
-                            updatedFilesForLocalDisk(newDirectory);
-                        } else if (displayFiles.isFile() && displayFiles instanceof ZipFileLink zipFileLink) {
-
-                        }
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
+                    return;
                 }
+
+                // todo zip внутри zip
+                try {
+                    if ("application/zip".equals(Files.probeContentType(displayFiles.createPath()))) {
+                        Directory newDirectory = new ZipDirectory(displayFiles);
+                        updatedFilesForLocalDisk(newDirectory);
+                    } else if (displayFiles.isDirectory() && displayFiles instanceof ZipFileLink zipFileLink) {
+                        Directory newDirectory = new ZipDirectory(zipFileLink, zipFileLink.getZipFile());
+                        updatedFilesForLocalDisk(newDirectory);
+                    }
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+
+                Image image = displayFiles.getImage();
+                if (image != null) {
+                    MainFrame.PREVIEW_PANEL.update(image);
+                    return;
+                }
+
             }
         };
     }
