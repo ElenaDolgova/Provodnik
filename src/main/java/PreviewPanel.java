@@ -23,14 +23,33 @@ public class PreviewPanel extends Component {
         MainFrame.GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
     }
 
-    public void update(Image inputImage) {
+    public void updateImage(Image inputImage) {
         ImageIcon icon = new ImageIcon(inputImage.getScaledInstance(300, -1, Image.SCALE_FAST));
         image.setIcon(icon);
         textArea.setVisible(false);
         image.setVisible(true);
     }
 
-    public void update(File file) {
+    public void updateTxt(InputStream in) {
+        image.setVisible(false);
+        textArea.setVisible(true);
+        try {
+            // todo мне не нравится такое чтение по частям
+            try (InputStreamReader inputStreamReader = new InputStreamReader(in);
+                 BufferedReader input = new BufferedReader(inputStreamReader)) {
+                String str = input.lines()
+                        .limit(MAX_TEXT_LINES)
+                        .collect(Collectors.joining("\n"));
+                input.close();
+                textArea.read(new StringReader(str), null);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateTxt(File file) {
         image.setVisible(false);
         textArea.setVisible(true);
         try {

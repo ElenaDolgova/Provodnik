@@ -63,7 +63,7 @@ public final class LocalDirectory implements Directory {
                     .map(file -> {
                         try {
                             if ("application/zip".equals(Files.probeContentType(file.toPath()))) {
-                                return new ZipFileLink(new ZipFile(file), null, file);
+                                return new ZipFileLink(new ZipFile(file), "", file);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();

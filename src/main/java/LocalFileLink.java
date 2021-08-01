@@ -31,13 +31,18 @@ public final class LocalFileLink implements Link {
         }
         if (probeContentType != null) {
             if (probeContentType.contains("image")) {
-                Image image = getImage();
+                Image image = null;
+                try {
+                    image = ImageIO.read(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 if (image != null) {
-                    MainFrame.PREVIEW_PANEL.update(image);
+                    MainFrame.PREVIEW_PANEL.updateImage(image);
                 }
                 return;
             } else if (probeContentType.contains("text")) {
-                MainFrame.PREVIEW_PANEL.update(getFile());
+                MainFrame.PREVIEW_PANEL.updateTxt(getFile());
             }
         }
     }
@@ -70,7 +75,6 @@ public final class LocalFileLink implements Link {
     public boolean isDirectory() {
         return file.isDirectory();
     }
-
 
 
     @Override
