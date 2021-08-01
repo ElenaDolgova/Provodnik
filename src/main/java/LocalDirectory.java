@@ -1,7 +1,10 @@
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.zip.ZipFile;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
@@ -51,13 +54,22 @@ public final class LocalDirectory implements Directory {
      */
     private JList<Link> getDirectoryFiles() {
         DefaultListModel<Link> labelJList = new DefaultListModel<>();
-        File file = path.toFile();
-        if (file.isDirectory()) {
-            //todo тест кейсБ а когда file.listFiles() мб null?
+        File selectedFile = path.toFile();
+        if (selectedFile.isDirectory()) {
+            //todo тест кейс, а когда file.listFiles() мб null?
             // когда не диреткория
-            SortedSet<LocalFileLink> sortedFiles = new TreeSet<>();
-            Arrays.stream(Objects.requireNonNull(file.listFiles()))
-                    .map(LocalFileLink::new)
+            SortedSet<Link> sortedFiles = new TreeSet<>();
+            Arrays.stream(Objects.requireNonNull(selectedFile.listFiles()))
+                    .map(file -> {
+                        try {
+                            if ("application/zip".equals(Files.probeContentType(file.toPath()))) {
+                                return new ZipFileLink(new ZipFile(file), null, file);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return new LocalFileLink(file);
+                    })
                     .forEach(sortedFiles::add);
             sortedFiles.forEach(labelJList::addElement);
         }

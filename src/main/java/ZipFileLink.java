@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -48,6 +49,21 @@ public class ZipFileLink implements Link {
             ioException.printStackTrace();
         }
         return image;
+    }
+
+    @Override
+    public void invoke() {
+        try {
+            if ("application/zip".equals(Files.probeContentType(createPath()))) {
+                Directory newDirectory = new ZipDirectory(this);
+                FilesScrollPane.addNewDirectory(newDirectory);
+            } else if (isDirectory()) {
+                Directory newDirectory = new ZipDirectory(this, getZipFile());
+                FilesScrollPane.addNewDirectory(newDirectory);
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -14,6 +15,32 @@ public final class LocalFileLink implements Link {
         this.name = file.getName();
     }
 
+    @Override
+    public void invoke() {
+        if (isDirectory()) {
+            Directory newDirectory = new LocalDirectory(this);
+            FilesScrollPane.addNewDirectory(newDirectory);
+            return;
+        }
+
+        String probeContentType = null;
+        try {
+            probeContentType = Files.probeContentType(createPath());
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        if (probeContentType != null) {
+            if (probeContentType.contains("image")) {
+                Image image = getImage();
+                if (image != null) {
+                    MainFrame.PREVIEW_PANEL.update(image);
+                }
+                return;
+            } else if (probeContentType.contains("text")) {
+                MainFrame.PREVIEW_PANEL.update(getFile());
+            }
+        }
+    }
 
     /**
      * @return если не изображение, то null

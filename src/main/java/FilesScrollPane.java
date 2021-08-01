@@ -26,83 +26,25 @@ public class FilesScrollPane {
 
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                System.out.println("event");
-                System.out.println(e);
                 // todo по пути /Users/tmpAdmin/ не обновляется файловый таб
                 JList<Link> source = (JList<Link>) e.getSource();
-
                 Link displayFiles = source.getSelectedValue();
                 // todо тест кейса на добавление не повторяющихся файлов
-                // тест на добавление файлов в директорию
-
-                // xlsm и xlsx
-                // application/vnd.ms-excel.sheet.macroenabled.12
-                // pdf
-                // application/pdf
-                // json
-                // application/json
-                // xml
-                // application/xml
-
-                // py
-                // text/x-python-script
-                // java - txt
-                // text/plain
-                // csv
-                // text/csv
-
-                // jpg
-                // image/jpeg
-                // png
-                // image/png
-
-                if (displayFiles instanceof LocalFileLink) {
-                    if (displayFiles.isDirectory()) {
-                        Directory newDirectory = new LocalDirectory(displayFiles);
-                        updatedFilesForLocalDisk(newDirectory);
-                        return;
-                    }
-
-                    String probeContentType = null;
-                    try {
-                        probeContentType = Files.probeContentType(displayFiles.createPath());
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
-                    if (probeContentType != null) {
-                        if (probeContentType.contains("image")) {
-                            Image image = displayFiles.getImage();
-                            if (image != null) {
-                                MainFrame.PREVIEW_PANEL.update(image);
-                            }
-                            return;
-                        } else if (probeContentType.contains("text")) {
-                            MainFrame.PREVIEW_PANEL.update(displayFiles.getFile());
-                        }
-                    }
-                }
-
+                // тест на добавление только нового! файлов в директорию
 
                 // todo zip внутри zip
-                try {
-                    if ("application/zip".equals(Files.probeContentType(displayFiles.createPath()))) {
-                        Directory newDirectory = new ZipDirectory(displayFiles);
-                        updatedFilesForLocalDisk(newDirectory);
-                        return;
-                    } else if (displayFiles.isDirectory() && displayFiles instanceof ZipFileLink zipFileLink) {
-                        Directory newDirectory = new ZipDirectory(zipFileLink, zipFileLink.getZipFile());
-                        updatedFilesForLocalDisk(newDirectory);
-                        return;
-                    }
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
+                displayFiles.invoke();
 
             }
         };
     }
 
-    private static void updatedFilesForLocalDisk(Directory newDirectory) {
+    /**
+     * Метод добавляет на таб с директориями новый узел и обновляет список файлов каталога
+     *
+     * @param newDirectory директория, в которой нужно обновить отображения файлов
+     */
+    public static void addNewDirectory(Directory newDirectory) {
         JList<Directory> displayDirectory =
                 (JList<Directory>) MainFrame.DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();

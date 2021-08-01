@@ -14,4 +14,9 @@ public interface Link extends Comparable<Link> {
     File getFile();
 
     Image getImage();
+
+    /**
+     * Метод вызывается при нажатии на определенный компонент в каталоге
+     */
+    void invoke();
 }
