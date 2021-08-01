@@ -63,6 +63,9 @@ public class DirectoryScrollPane {
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 JList<Directory> source = (JList<Directory>) e.getSource();
+                // убираем таб с превью
+                PreviewPanel.getImage().setVisible(false);
+                PreviewPanel.getTextArea().setVisible(false);
                 // обновляем содержимое панели с файлами
                 source.getSelectedValue().updateFilesScrollPane();
                 //схлопываем директорию до нажатой

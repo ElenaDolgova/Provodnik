@@ -28,4 +28,12 @@ public final class Dimensions {
      * Высота окна панели с файлами
      */
     public static final int FILE_SCROLL_PANE_HEIGHT = MAIN_HEIGHT - 10;
+    /**
+     * Ширина окна панели с превью
+     */
+    public static final int PREVIEW_PANEL_WIDTH = MAIN_WIDTH / 6 * 3;
+    /**
+     * Высота окна панели с превью
+     */
+    public static final int PREVIEW_PANEL_HEIGHT = MAIN_HEIGHT;
 }
