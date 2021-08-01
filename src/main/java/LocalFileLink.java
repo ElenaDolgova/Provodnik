@@ -20,6 +20,7 @@ public final class LocalFileLink implements Link {
      */
     @Override
     public Image getImage() {
+        // todo долго читается? почему подтормаживает экран?
         Image image = null;
         try {
             image = ImageIO.read(file);
