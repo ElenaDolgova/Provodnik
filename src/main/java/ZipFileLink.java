@@ -3,8 +3,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class ZipFileLink implements Link {
     private final ZipFile zipFile;
@@ -12,6 +15,10 @@ public class ZipFileLink implements Link {
      * Имя entry, по которому можно найти ZipEntry в zipFile
      */
     private final String entryName;
+    /**
+     * Именя ентри, по которым нужно искать файлы
+     */
+    private final List<String> entryNames = new ArrayList<>();
     /**
      * Имя файла
      */
@@ -54,6 +61,22 @@ public class ZipFileLink implements Link {
         if (probeContentType != null) {
             if ("application/zip".equals(probeContentType)) {
                 // todo zip внутри zip не работает
+                try {
+                    if (this.getZipEntry() != null) {
+                        InputStream in = zipFile.getInputStream(this.getZipEntry());
+                        ZipInputStream zipInputStream = new ZipInputStream(in);
+                        ZipEntry zipEntry;
+                        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                            String entryName = zipEntry.getName();
+                            System.out.println("kjfndvjfn");
+                            System.out.println(entryName);
+                        }
+                        in.close();
+                        return new ZipDirectory(this, zipFile);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return new ZipDirectory(this);
             }
         } else if (isDirectory()) {

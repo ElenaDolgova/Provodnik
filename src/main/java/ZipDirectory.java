@@ -1,9 +1,11 @@
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class ZipDirectory implements Directory {
     /**
@@ -21,18 +23,23 @@ public class ZipDirectory implements Directory {
      */
     private final String globalParent;
 
-    public ZipDirectory(Link displayFiles) throws IOException {
+    private final ZipFileLink zipFileLink;
+
+    public ZipDirectory(ZipFileLink displayFiles) throws IOException {
         this.path = displayFiles.getPath();
         this.zipFile = new ZipFile(displayFiles.getPath().toFile());
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = null;
+        this.zipFileLink = displayFiles;
     }
 
     public ZipDirectory(ZipFileLink displayFiles, ZipFile zipFile) {
         this.path = displayFiles.getPath();
         this.zipFile = zipFile;
+        this.zipFileLink = displayFiles;
+
         this.directoryName = createDirectoryName(this.path.getFileName());
-        this.globalParent = displayFiles.getParent();
+        this.globalParent = displayFiles.getZipEntry().getName();
     }
 
     private String createDirectoryName(Path path) {
@@ -44,10 +51,31 @@ public class ZipDirectory implements Directory {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         SortedSet<Link> sortedFiles = new TreeSet<>();
         String currentGlobalParent = null;
+
+        try {
+            if (zipFileLink.getZipEntry() != null) {
+                InputStream in = zipFile.getInputStream(zipFileLink.getZipEntry());
+                ZipInputStream zipInputStream = new ZipInputStream(in);
+                ZipEntry zipEntry;
+                while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                    String entryName = zipEntry.getName();
+                    System.out.println("kjfndvjfn");
+                    System.out.println(entryName);
+                    File file = new File(entryName);
+                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
+                }
+                in.close();
+                return sortedFiles;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
             String entryName = entry.getName();
             File file = new File(entryName);
+
             if (globalParent == null) {
                 if (file.getParent() == null) {
                     currentGlobalParent = file.getName();
