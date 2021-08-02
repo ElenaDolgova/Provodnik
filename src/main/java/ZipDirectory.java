@@ -1,13 +1,16 @@
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public class ZipDirectory implements Directory {
+    private final FileSystem fs;
+
+//    private final ZipFile zipFile;
     /**
      * Имя директории
      */
@@ -16,79 +19,114 @@ public class ZipDirectory implements Directory {
      * Путь до файла
      */
     private final Path path;
-
-    private final ZipFile zipFile;
     /**
      * Имя родителя zip файла
      */
     private final String globalParent;
 
-    private final ZipFileLink zipFileLink;
-
     public ZipDirectory(ZipFileLink displayFiles) throws IOException {
         this.path = displayFiles.getPath();
-        this.zipFile = new ZipFile(displayFiles.getPath().toFile());
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = null;
-        this.zipFileLink = displayFiles;
+        this.fs = FileSystems.newFileSystem(
+                Paths.get(displayFiles.getPath().toString()), Collections.emptyMap());
     }
 
-    public ZipDirectory(ZipFileLink displayFiles, ZipFile zipFile) {
+    public ZipDirectory(ZipFileLink displayFiles, FileSystem fs, boolean isDirectory) throws IOException {
         this.path = displayFiles.getPath();
-        this.zipFile = zipFile;
-        this.zipFileLink = displayFiles;
-
         this.directoryName = createDirectoryName(this.path.getFileName());
-        this.globalParent = displayFiles.getZipEntry().getName();
+        this.globalParent = path.toString();
+        String first = displayFiles.getPath().toString();
+        this.fs = isDirectory ? fs : FileSystems.newFileSystem(fs.getPath(first), Collections.emptyMap());
     }
 
     private String createDirectoryName(Path path) {
         return String.valueOf(path.getFileName());
     }
 
+    private static void printAllFiles(FileSystem fs) {
+        StreamSupport.stream(fs.getRootDirectories().spliterator(), false)
+                .flatMap((it) -> {
+                    try {
+                        return Files.walk(it, 2);
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }).forEach(p -> {
+            System.out.println(p);
+            System.out.println(p.getFileName());
+        });
+    }
+
+    private static Stream<Path> streamAllFiles(FileSystem fs, int depth) {
+        return StreamSupport.stream(fs.getRootDirectories().spliterator(), false)
+                .flatMap((it) -> {
+                    try {
+                        System.out.println("it " + it);
+                        return Files.walk(it, depth);
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
+    }
+
+    private void printfAllFiles(java.nio.file.FileSystem fs) {
+        StreamSupport.stream(fs.getRootDirectories().spliterator(), false)
+                .flatMap((it) -> {
+                    try {
+//                        return Files.walk(it);
+                        return Files.walk(it, 2);
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }).forEach(System.out::println);
+    }
+
     @Override
-    public SortedSet<Link> getFiles() {
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        SortedSet<Link> sortedFiles = new TreeSet<>();
-        String currentGlobalParent = null;
-
-        try {
-            if (zipFileLink.getZipEntry() != null) {
-                InputStream in = zipFile.getInputStream(zipFileLink.getZipEntry());
-                ZipInputStream zipInputStream = new ZipInputStream(in);
-                ZipEntry zipEntry;
-                while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                    String entryName = zipEntry.getName();
-                    System.out.println("kjfndvjfn");
-                    System.out.println(entryName);
-                    File file = new File(entryName);
-                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
-                }
-                in.close();
-                return sortedFiles;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            String entryName = entry.getName();
-            File file = new File(entryName);
-
-            if (globalParent == null) {
-                if (file.getParent() == null) {
-                    currentGlobalParent = file.getName();
-                } else if (file.getParent().equals(currentGlobalParent)) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
-                }
-            } else {
-                if (path.toString().equals(file.getParent())) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
-                }
+    public List<Link> getFiles() {
+        int depth = 0;
+        if (globalParent == null) {
+            depth = 2;
+        } else {
+            depth = 1;
+            Path curPath = path;
+            while (curPath.getParent() != null) {
+                curPath = curPath.getParent();
+                ++depth;
             }
         }
-        return sortedFiles;
+        List<Link> files = new ArrayList<>();
+        // значит zip внутри zip
+        if (globalParent != null) {
+            System.out.println("\nzip in zip " + depth);
+            streamAllFiles(fs, depth)
+                    .forEach(p -> {
+                        System.out.println(p);
+                        System.out.println(String.valueOf(p.getFileName()));
+                        // todo как понять, что это директория?
+                        System.out.println(Files.isDirectory(p));
+                        File file = new File(p.toString());
+                        System.out.println(file.isDirectory());
+                        File file1 = new File(String.valueOf(p.getFileName()));
+                        System.out.println(file1.isDirectory());
+                        files.add(new ZipFileLink(p, file, fs));
+                    });
+            return files;
+        } else {
+            System.out.println("\nppp" + depth);
+            streamAllFiles(fs, depth)
+                    .forEach(p -> {
+                        System.out.println(p);
+                        System.out.println(p.getFileName());
+                        System.out.println(Files.isDirectory(p));
+                        File file = new File(p.toString());
+                        System.out.println(file.isDirectory());
+                        File file1 = new File(String.valueOf(p.getFileName()));
+                        System.out.println(file1.isDirectory());
+                        files.add(new ZipFileLink(p, file, fs));
+                    });
+            return files;
+        }
     }
 
     public String getDirectoryName() {
@@ -98,21 +136,5 @@ public class ZipDirectory implements Directory {
     @Override
     public String toString() {
         return getDirectoryName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ZipDirectory that = (ZipDirectory) o;
-        return Objects.equals(directoryName, that.directoryName) &&
-                Objects.equals(path, that.path) &&
-                Objects.equals(zipFile, that.zipFile) &&
-                Objects.equals(globalParent, that.globalParent);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(directoryName, path, zipFile, globalParent);
     }
 }

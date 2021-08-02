@@ -1,39 +1,31 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public class ZipFileLink implements Link {
-    private final ZipFile zipFile;
     /**
      * Имя entry, по которому можно найти ZipEntry в zipFile
      */
     private final String entryName;
     /**
-     * Именя ентри, по которым нужно искать файлы
-     */
-    private final List<String> entryNames = new ArrayList<>();
-    /**
      * Имя файла
      */
-    private final String name;
     private final File file;
 
-    public ZipFileLink(ZipFile zipFile, String entryName, File file) {
-        this.zipFile = zipFile;
-        this.entryName = entryName;
-        this.name = file.getName();
-        this.file = file;
-    }
+    private final FileSystem fs;
 
-    public String getParent() {
-        return file.getParent();
+    private final Path path;
+
+    public ZipFileLink(Path path, File file, FileSystem fs) {
+        this.entryName = path == null ? null : String.valueOf(path.getFileName());
+        this.file = file;
+        this.fs = fs;
+        this.path = path;
     }
 
     @Override
@@ -43,16 +35,13 @@ public class ZipFileLink implements Link {
 
     @Override
     public boolean isDirectory() {
-        return getZipEntry().isDirectory();
-    }
-
-    public ZipEntry getZipEntry() {
-        return zipFile.getEntry(entryName);
+        return Files.isDirectory(path);
     }
 
     @Override
     public InputStream getInputStreamOfFile() throws IOException {
-        return zipFile.getInputStream(getZipEntry());
+        return null;
+//        return zipFile.getInputStream(getZipEntry());
     }
 
     @Override
@@ -61,26 +50,17 @@ public class ZipFileLink implements Link {
         if (probeContentType != null) {
             if ("application/zip".equals(probeContentType)) {
                 // todo zip внутри zip не работает
-                try {
-                    if (this.getZipEntry() != null) {
-                        InputStream in = zipFile.getInputStream(this.getZipEntry());
-                        ZipInputStream zipInputStream = new ZipInputStream(in);
-                        ZipEntry zipEntry;
-                        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                            String entryName = zipEntry.getName();
-                            System.out.println("kjfndvjfn");
-                            System.out.println(entryName);
-                        }
-                        in.close();
-                        return new ZipDirectory(this, zipFile);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (entryName == null) {
+                    // создается просто zip
+                    return new ZipDirectory(this);
+                } else {
+                    //  файл ИЛИ zip внутри zip
+                    return new ZipDirectory(this, fs, false);
                 }
-                return new ZipDirectory(this);
             }
         } else if (isDirectory()) {
-            return new ZipDirectory(this, getZipFile());
+            // когда директория внутри zip
+            return new ZipDirectory(this, fs, true);
         }
         return null;
     }
@@ -98,18 +78,6 @@ public class ZipFileLink implements Link {
     @Override
     public String getName() {
         return file.getName();
-    }
-
-    public ZipFile getZipFile() {
-        return zipFile;
-    }
-
-    @Override
-    public int compareTo(Link o) {
-        if (o == null) {
-            return 1;
-        }
-        return name.compareTo(o.getName());
     }
 
     @Override

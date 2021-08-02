@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 
 public final class LocalFileLink implements Link {
     private final File file;
@@ -60,26 +59,5 @@ public final class LocalFileLink implements Link {
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        LocalFileLink that = (LocalFileLink) o;
-        return Objects.equals(file, that.file) && Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(file, name);
-    }
-
-    @Override
-    public int compareTo(Link o) {
-        if (o == null) {
-            return 1;
-        }
-        return name.compareTo(o.getName());
     }
 }

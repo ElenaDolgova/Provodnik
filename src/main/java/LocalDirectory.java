@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
 import java.util.zip.ZipFile;
 
@@ -42,43 +41,32 @@ public final class LocalDirectory implements Directory {
     }
 
     @Override
-    public SortedSet<Link> getFiles() {
+    public List<Link> getFiles() {
         File selectedFile = path.toFile();
         //todo тест кейс, а когда file.listFiles() мб null?
         // когда не диреткория
-        SortedSet<Link> sortedFiles = new TreeSet<>();
+        List<Link> files = new ArrayList<>();
         if (selectedFile.isDirectory()) {
             Arrays.stream(Objects.requireNonNull(selectedFile.listFiles()))
                     .map(file -> {
                         try {
                             if ("application/zip".equals(Files.probeContentType(file.toPath()))) {
-                                return new ZipFileLink(new ZipFile(file), "", file);
+                                FileSystem fs = FileSystems.newFileSystem(
+                                        Paths.get(file.toPath().toString()), Collections.emptyMap());
+                                return new ZipFileLink(null, file, fs);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         return new LocalFileLink(file);
                     })
-                    .forEach(sortedFiles::add);
+                    .forEach(files::add);
         }
-        return sortedFiles;
+        return files;
     }
 
     @Override
     public String toString() {
         return getDirectoryName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        LocalDirectory that = (LocalDirectory) o;
-        return directoryName.equals(that.directoryName) && path.equals(that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(directoryName, path);
     }
 }

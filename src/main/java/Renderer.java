@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.SortedSet;
 
 public final class Renderer {
@@ -30,7 +31,7 @@ public final class Renderer {
      * Метод возвращает список файлов текущей директории
      */
     private JList<Link> getDirectoryFiles(Directory directory) {
-        SortedSet<Link> set = directory.getFiles();
+        List<Link> set = directory.getFiles();
         DefaultListModel<Link> labelJList = new DefaultListModel<>();
         set.forEach(labelJList::addElement);
         return new JList<>(labelJList);
