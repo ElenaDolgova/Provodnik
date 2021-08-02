@@ -1,6 +1,4 @@
 import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.SortedSet;
 
@@ -38,19 +36,32 @@ public final class Renderer {
         return new JList<>(labelJList);
     }
 
-    public JFrame getGLOBAL_FRAME() {
-        return GLOBAL_FRAME;
+    /**
+     * Метод добавляет на таб с директориями новый узел и обновляет список файлов каталога
+     *
+     * @param newDirectory директория, в которой нужно обновить отображения файлов
+     */
+    public void addNewDirectory(Directory newDirectory) {
+        JList<Directory> displayDirectory = (JList<Directory>) DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
+        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
+        if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
+            // добавляем новую директорию на панель с директориями
+            sourceModel.addElement(newDirectory);
+            // обновляем панельку с фалами
+            updateFilesScrollPane(newDirectory);
+        }
     }
 
-    public DirectoryScrollPane getDIRECTORY_SCROLL_PANE() {
-        return DIRECTORY_SCROLL_PANE;
-    }
-
-    public FilesScrollPane getFILES_SCROLL_PANE() {
-        return FILES_SCROLL_PANE;
-    }
-
-    public PreviewPanel getPREVIEW_PANEL() {
-        return PREVIEW_PANEL;
+    /**
+     * Обновляем панель с отображением текстового файла или изображения
+     *
+     * @param displayFiles
+     */
+    public void updatePreviewPanel(Link displayFiles) {
+        try {
+            PREVIEW_PANEL.update(displayFiles.getProbeContentType(), displayFiles.getInputStreamOfFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

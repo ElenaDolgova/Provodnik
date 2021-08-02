@@ -36,33 +36,15 @@ public class FilesScrollPane {
                     // вот тут важный момент. Если это zip, то возвращается директория.
                     newDirectory = displayFiles.createDirectory();
                     if (newDirectory != null) {
-                        FilesScrollPane.addNewDirectory(newDirectory, renderer);
+                        renderer.addNewDirectory(newDirectory);
                     } else {
-                        renderer.getPREVIEW_PANEL().update(displayFiles.getProbeContentType(), displayFiles.getInputStreamOfFile());
+                        renderer.updatePreviewPanel(displayFiles);
                     }
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
             }
         };
-    }
-
-    /**
-     * Метод добавляет на таб с директориями новый узел и обновляет список файлов каталога
-     *
-     * @param newDirectory директория, в которой нужно обновить отображения файлов
-     */
-    public static void addNewDirectory(Directory newDirectory,
-                                       Renderer renderer) {
-        JList<Directory> displayDirectory =
-                (JList<Directory>) renderer.getDIRECTORY_SCROLL_PANE().getScrollPane().getViewport().getView();
-        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
-        if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
-            // добавляем новую директорию на панель с директориями
-            sourceModel.addElement(newDirectory);
-            // обновляем панельку с фалами
-            renderer.updateFilesScrollPane(newDirectory);
-        }
     }
 
     public JScrollPane getScrollPane() {
