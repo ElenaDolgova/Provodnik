@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 public class FilesScrollPane {
     private final JScrollPane jScrollPane;
@@ -30,7 +31,18 @@ public class FilesScrollPane {
                 // тест на добавление только нового! файлов в директорию
 
                 // todo zip внутри zip
-                displayFiles.invoke(renderer);
+                Directory newDirectory;
+                try {
+                    // вот тут важный момент. Если это zip, то возвращается директория.
+                    newDirectory = displayFiles.createDirectory();
+                    if (newDirectory != null) {
+                        FilesScrollPane.addNewDirectory(newDirectory, renderer);
+                    } else {
+                        renderer.getPREVIEW_PANEL().update(displayFiles.getProbeContentType(), displayFiles.getInputStreamOfFile());
+                    }
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         };
     }
@@ -41,10 +53,9 @@ public class FilesScrollPane {
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
     public static void addNewDirectory(Directory newDirectory,
-                                       DirectoryScrollPane DIRECTORY_SCROLL_PANE,
                                        Renderer renderer) {
         JList<Directory> displayDirectory =
-                (JList<Directory>) DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
+                (JList<Directory>) renderer.getDIRECTORY_SCROLL_PANE().getScrollPane().getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
         if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями

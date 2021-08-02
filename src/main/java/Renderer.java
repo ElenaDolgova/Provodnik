@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.SortedSet;
 
 public final class Renderer {
@@ -22,7 +23,9 @@ public final class Renderer {
     public void updateFilesScrollPane(Directory directory) {
         JList<Link> displayFiles = getDirectoryFiles(directory);
         FILES_SCROLL_PANE.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(getFilesScrollMouseListener(this));
+        //todo не понимаю, где оставить реализацию листенеров. Потому что в нутрь листенера передается
+        // render.  и мне это не нравится
+        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
     }
 
     /**
@@ -34,31 +37,6 @@ public final class Renderer {
         set.forEach(labelJList::addElement);
         return new JList<>(labelJList);
     }
-
-    /**
-     * Вызывается при нажатии на файл в табе с файлами (в каталоге) {@link MainFrame.FILES_SCROLL_PANE}
-     */
-    // todo а точно ли этот листенер разумно оставлять в preview?
-    public static MouseAdapter getFilesScrollMouseListener(Renderer renderer) {
-        // тест кейс:
-        // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
-        // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
-        // 3. Зашли в поддерево, вышли из него -> зашли в более глубокое
-
-        return new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                // todo по пути /Users/tmpAdmin/ не обновляется файловый таб
-                JList<Link> source = (JList<Link>) e.getSource();
-                Link displayFiles = source.getSelectedValue();
-                // todо тест кейса на добавление не повторяющихся файлов
-                // тест на добавление только нового! файлов в директорию
-
-                // todo zip внутри zip
-                displayFiles.invoke(renderer);
-            }
-        };
-    }
-
 
     public JFrame getGLOBAL_FRAME() {
         return GLOBAL_FRAME;

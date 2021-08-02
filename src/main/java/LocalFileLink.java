@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -15,19 +16,29 @@ public final class LocalFileLink implements Link {
     }
 
     @Override
-    public void invoke(Renderer renderer) {
+    public Directory createDirectory() {
+        Directory newDirectory = null;
         if (isDirectory()) {
-            Directory newDirectory = new LocalDirectory(this);
-            FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
-            return;
+            newDirectory = new LocalDirectory(this);
         }
+        return newDirectory;
+    }
 
+    @Override
+    public InputStream getInputStreamOfFile() throws IOException {
+        return new FileInputStream(file);
+    }
+
+    @Override
+    public String getProbeContentType() {
+        String type = null;
         try {
-            String probeContentType = Files.probeContentType(getPath());
-            renderer.getPREVIEW_PANEL().update(probeContentType, new FileInputStream(file));
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+            type = Files.probeContentType(getPath());
+            return type;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return type;
     }
 
     @Override

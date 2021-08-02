@@ -1,5 +1,3 @@
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,36 +43,33 @@ public class ZipFileLink implements Link {
         return zipFile.getEntry(entryName);
     }
 
-    private InputStream getInputStreamOfFile() throws IOException {
+    @Override
+    public InputStream getInputStreamOfFile() throws IOException {
         return zipFile.getInputStream(getZipEntry());
     }
 
     @Override
-    public void invoke(Renderer renderer) {
-        try {
-            String probeContentType = null;
-            try {
-                probeContentType = Files.probeContentType(getPath());
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
+    public Directory createDirectory() throws IOException {
+        String probeContentType = getProbeContentType();
+        if (probeContentType != null) {
+            if ("application/zip".equals(probeContentType)) {
+                // todo zip внутри zip не работает
+                return new ZipDirectory(this);
             }
+        } else if (isDirectory()) {
+            return new ZipDirectory(this, getZipFile());
+        }
+        return null;
+    }
 
-            if (probeContentType != null) {
-                if ("application/zip".equals(probeContentType)) {
-                    // todo zip внутри zip не работает
-                    Directory newDirectory = new ZipDirectory(this);
-                    // todo не очень нравится, что тут вызывается статический метод,
-                    // который по сути должен только использовать это класс
-                    FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
-                } else if (isDirectory()) {
-                    Directory newDirectory = new ZipDirectory(this, getZipFile());
-                    FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
-                }
-                renderer.getPREVIEW_PANEL().update(probeContentType, getInputStreamOfFile());
-            }
+    public String getProbeContentType() {
+        String probeContentType = null;
+        try {
+            probeContentType = Files.probeContentType(getPath());
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
+        return probeContentType;
     }
 
     @Override

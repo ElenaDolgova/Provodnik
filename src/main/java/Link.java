@@ -1,5 +1,5 @@
-import java.awt.*;
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 public interface Link extends Comparable<Link> {
@@ -9,8 +9,14 @@ public interface Link extends Comparable<Link> {
 
     String getName();
 
-    /**
-     * Метод вызывается при нажатии на определенный компонент в каталоге
-     */
-    void invoke(Renderer renderer);
+//    /**
+//     * Метод вызывается при нажатии на определенный компонент в каталоге
+//     */
+//    void invoke(Renderer renderer);
+
+    Directory createDirectory() throws IOException;
+
+    String getProbeContentType();
+
+    InputStream getInputStreamOfFile() throws IOException;
 }
