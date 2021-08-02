@@ -1,6 +1,5 @@
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,58 +15,24 @@ public final class LocalFileLink implements Link {
     }
 
     @Override
-    public void invoke() {
+    public void invoke(Renderer renderer) {
         if (isDirectory()) {
             Directory newDirectory = new LocalDirectory(this);
-            FilesScrollPane.addNewDirectory(newDirectory);
+            FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
             return;
         }
 
-        String probeContentType = null;
         try {
-            probeContentType = Files.probeContentType(getPath());
+            String probeContentType = Files.probeContentType(getPath());
+            renderer.getPREVIEW_PANEL().update(probeContentType, new FileInputStream(file));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        if (probeContentType != null) {
-            if (probeContentType.contains("image")) {
-                Image image = null;
-                try {
-                    image = ImageIO.read(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (image != null) {
-                    MainFrame.PREVIEW_PANEL.updateImage(image);
-                }
-            } else if (probeContentType.contains("text")) {
-                MainFrame.PREVIEW_PANEL.updateTxt(getFile());
-            }
-        }
-    }
-
-    /**
-     * @return если не изображение, то null
-     */
-    @Override
-    public Image getImage() {
-        // todo долго читается? почему подтормаживает экран?
-        Image image = null;
-        try {
-            image = ImageIO.read(file);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-        return image;
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    public File getFile() {
-        return file;
     }
 
     @Override

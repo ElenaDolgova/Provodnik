@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -8,7 +7,7 @@ import java.util.zip.ZipFile;
 
 public class ZipDirectory implements Directory {
     /**
-     * Имя диреткории
+     * Имя директории
      */
     private final String directoryName;
     /**
@@ -24,7 +23,7 @@ public class ZipDirectory implements Directory {
 
     public ZipDirectory(Link displayFiles) throws IOException {
         this.path = displayFiles.getPath();
-        this.zipFile = new ZipFile(displayFiles.getFile());
+        this.zipFile = new ZipFile(displayFiles.getPath().toFile());
         this.directoryName = createDirectoryName(this.path.getFileName());
         this.globalParent = null;
     }
@@ -41,17 +40,7 @@ public class ZipDirectory implements Directory {
     }
 
     @Override
-    public void updateFilesScrollPane() {
-        JList<Link> displayFiles = getDirectoryFiles();
-        MainFrame.FILES_SCROLL_PANE.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener());
-    }
-
-    /**
-     * метод отвечает за отображение файлов на панели с файлами {@link FilesScrollPane}
-     */
-    private JList<Link> getDirectoryFiles() {
-        DefaultListModel<Link> labelJList = new DefaultListModel<>();
+    public SortedSet<Link> getFiles() {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         SortedSet<Link> sortedFiles = new TreeSet<>();
         String currentGlobalParent = null;
@@ -71,8 +60,7 @@ public class ZipDirectory implements Directory {
                 }
             }
         }
-        sortedFiles.forEach(labelJList::addElement);
-        return new JList<>(labelJList);
+        return sortedFiles;
     }
 
     public String getDirectoryName() {

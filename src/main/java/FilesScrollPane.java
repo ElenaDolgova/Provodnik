@@ -1,9 +1,6 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.nio.file.Files;
 
 public class FilesScrollPane {
     private final JScrollPane jScrollPane;
@@ -18,7 +15,7 @@ public class FilesScrollPane {
     /**
      * Вызывается при нажатии на файл в табе с файлами (в каталоге) {@link MainFrame.FILES_SCROLL_PANE}
      */
-    public static MouseAdapter getMouseListener() {
+    public static MouseAdapter getMouseListener(Renderer renderer) {
         // тест кейс:
         // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
         // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
@@ -33,7 +30,7 @@ public class FilesScrollPane {
                 // тест на добавление только нового! файлов в директорию
 
                 // todo zip внутри zip
-                displayFiles.invoke();
+                displayFiles.invoke(renderer);
             }
         };
     }
@@ -43,15 +40,17 @@ public class FilesScrollPane {
      *
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
-    public static void addNewDirectory(Directory newDirectory) {
+    public static void addNewDirectory(Directory newDirectory,
+                                       DirectoryScrollPane DIRECTORY_SCROLL_PANE,
+                                       Renderer renderer) {
         JList<Directory> displayDirectory =
-                (JList<Directory>) MainFrame.DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
+                (JList<Directory>) DIRECTORY_SCROLL_PANE.getScrollPane().getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
         if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями
             sourceModel.addElement(newDirectory);
             // обновляем панельку с фалами
-            newDirectory.updateFilesScrollPane();
+            renderer.updateFilesScrollPane(newDirectory);
         }
     }
 

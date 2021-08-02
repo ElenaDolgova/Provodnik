@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -22,15 +23,28 @@ public class DirectoryScrollPane {
 
     public DirectoryScrollPane() {
         JList<LocalDirectory> displayDirectory = new JList<>(createDirectoryLinks(START_PATH));
-        MouseListener mouseListener = getMouseListener();
-        displayDirectory.addMouseListener(mouseListener);
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
         scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
     }
 
-    public static DefaultListModel<LocalDirectory> createDirectoryLinks(File fullPath) {
+    public void init(Renderer renderer) {
+        MouseListener mouseListener = getMouseListener(renderer);
+        Component viewport = jScrollPane.getViewport().getView();
+        viewport.addMouseListener(mouseListener);
+    }
+
+    public DefaultListModel<LocalDirectory> createDirectoryLinks(File fullPath) {
+        List<LocalDirectory> links = getInitDirectoryLinks(fullPath);
+        DefaultListModel<LocalDirectory> labelJList = new DefaultListModel<>();
+        for (int i = links.size() - 1; i >= 0; --i) {
+            labelJList.addElement(links.get(i));
+        }
+        return labelJList;
+    }
+
+    private List<LocalDirectory> getInitDirectoryLinks(File fullPath) {
         List<LocalDirectory> links = new ArrayList<>(fullPath.toPath().getNameCount());
         String parent = fullPath.toPath().toAbsolutePath().toString();
         while (parent != null) {
@@ -39,21 +53,17 @@ public class DirectoryScrollPane {
             links.add(localDirectory);
             parent = path.toFile().getParent();
         }
-        DefaultListModel<LocalDirectory> labelJList = new DefaultListModel<>();
-        for (int i = links.size() - 1; i >= 0; --i) {
-            labelJList.addElement(links.get(i));
-        }
-        return labelJList;
+        return links;
     }
 
     /**
      * Метод вызывается при клике на определенный элемент на панели с директориями.
      * При это если пользователь нажал на не листовую директорию,
-     * то директории перестают отображаться ровно до выбранной и на панеле с просмоторщиком файлов начинают
+     * то директории перестают отображаться ровно до выбранной и на панели с просмоторщиком файлов начинают
      * отображаться файлы, выбранной директории.
      */
     // todo не с первого раза работают кнопки, может попробовать другой листенер?
-    private MouseAdapter getMouseListener() {
+    private MouseAdapter getMouseListener(Renderer renderer) {
         // тест кейс:
         // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
         // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
@@ -66,7 +76,7 @@ public class DirectoryScrollPane {
                 PreviewPanel.getImage().setVisible(false);
                 PreviewPanel.getTextArea().setVisible(false);
                 // обновляем содержимое панели с файлами
-                source.getSelectedValue().updateFilesScrollPane();
+                renderer.updateFilesScrollPane(source.getSelectedValue());
                 //схлопываем директорию до нажатой
                 DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) source.getModel();
                 for (int i = sourceModel.getSize() - 1; i > source.getSelectedIndex(); --i) {

@@ -1,8 +1,10 @@
+import java.util.SortedSet;
+
 public interface Directory {
     /**
-     * Обление оображения файлов на {@link FilesScrollPane}
+     * @return список файлов текущей директории
      */
-    void updateFilesScrollPane();
+    SortedSet<Link> getFiles();
 
     /**
      * @return имя текущей директории

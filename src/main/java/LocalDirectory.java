@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,23 +42,12 @@ public final class LocalDirectory implements Directory {
     }
 
     @Override
-    public void updateFilesScrollPane() {
-        JList<Link> displayFiles = getDirectoryFiles();
-        MainFrame.FILES_SCROLL_PANE.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener());
-    }
-
-
-    /**
-     * Метод возвращает список файлов текущей директории
-     */
-    private JList<Link> getDirectoryFiles() {
-        DefaultListModel<Link> labelJList = new DefaultListModel<>();
+    public SortedSet<Link> getFiles() {
         File selectedFile = path.toFile();
+        //todo тест кейс, а когда file.listFiles() мб null?
+        // когда не диреткория
+        SortedSet<Link> sortedFiles = new TreeSet<>();
         if (selectedFile.isDirectory()) {
-            //todo тест кейс, а когда file.listFiles() мб null?
-            // когда не диреткория
-            SortedSet<Link> sortedFiles = new TreeSet<>();
             Arrays.stream(Objects.requireNonNull(selectedFile.listFiles()))
                     .map(file -> {
                         try {
@@ -72,9 +60,8 @@ public final class LocalDirectory implements Directory {
                         return new LocalFileLink(file);
                     })
                     .forEach(sortedFiles::add);
-            sortedFiles.forEach(labelJList::addElement);
         }
-        return new JList<>(labelJList);
+        return sortedFiles;
     }
 
     @Override

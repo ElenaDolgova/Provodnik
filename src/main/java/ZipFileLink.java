@@ -32,11 +32,6 @@ public class ZipFileLink implements Link {
     }
 
     @Override
-    public File getFile() {
-        return file;
-    }
-
-    @Override
     public Path getPath() {
         return file.toPath();
     }
@@ -50,50 +45,32 @@ public class ZipFileLink implements Link {
         return zipFile.getEntry(entryName);
     }
 
-    @Override
-    public Image getImage() {
-        Image image = null;
-        try {
-            image = ImageIO.read(getInputStreamOfFile());
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-        return image;
-    }
-
     private InputStream getInputStreamOfFile() throws IOException {
-       return zipFile.getInputStream(getZipEntry());
+        return zipFile.getInputStream(getZipEntry());
     }
 
     @Override
-    public void invoke() {
+    public void invoke(Renderer renderer) {
         try {
-            if ("application/zip".equals(Files.probeContentType(getPath()))) {
-                // todo zip внутри zip не работает
-                Directory newDirectory = new ZipDirectory(this);
-                // todo не очень нравится, что тут вызывается статический метод,
-                // который по сути должен только использовать это класс
-                FilesScrollPane.addNewDirectory(newDirectory);
-            } else if (isDirectory()) {
-                Directory newDirectory = new ZipDirectory(this, getZipFile());
-                FilesScrollPane.addNewDirectory(newDirectory);
-            }
-
             String probeContentType = null;
             try {
                 probeContentType = Files.probeContentType(getPath());
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
+
             if (probeContentType != null) {
-                if (probeContentType.contains("image")) {
-                    Image image = getImage();
-                    if (image != null) {
-                        MainFrame.PREVIEW_PANEL.updateImage(image);
-                    }
-                } else if (probeContentType.contains("text")) {
-                    MainFrame.PREVIEW_PANEL.updateTxt(getInputStreamOfFile());
+                if ("application/zip".equals(probeContentType)) {
+                    // todo zip внутри zip не работает
+                    Directory newDirectory = new ZipDirectory(this);
+                    // todo не очень нравится, что тут вызывается статический метод,
+                    // который по сути должен только использовать это класс
+                    FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
+                } else if (isDirectory()) {
+                    Directory newDirectory = new ZipDirectory(this, getZipFile());
+                    FilesScrollPane.addNewDirectory(newDirectory, renderer.getDIRECTORY_SCROLL_PANE(), renderer);
                 }
+                renderer.getPREVIEW_PANEL().update(probeContentType, getInputStreamOfFile());
             }
         } catch (IOException ioException) {
             ioException.printStackTrace();

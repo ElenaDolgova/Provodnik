@@ -1,3 +1,4 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -9,11 +10,11 @@ public class PreviewPanel extends Component {
     private final static JLabel image = new JLabel();
     private final static JTextArea textArea = new JTextArea(7, 40);
 
-    public void init() {
+    public void init(JFrame GLOBAL_FRAME) {
         jPanel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
         initImage();
         initTextArea();
-        MainFrame.GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
+        GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
     }
 
     private void initImage() {
@@ -29,14 +30,31 @@ public class PreviewPanel extends Component {
         textArea.setEditable(false);
     }
 
-    public void updateImage(Image inputImage) {
-        ImageIcon icon = new ImageIcon(inputImage.getScaledInstance(300, -1, Image.SCALE_FAST));
-        image.setIcon(icon);
-        textArea.setVisible(false);
-        image.setVisible(true);
+    public void update(String probeContentType, InputStream in) {
+        if (probeContentType == null) {
+            return;
+        }
+        if (probeContentType.contains("image")) {
+            updateImage(in);
+        } else if (probeContentType.contains("text")) {
+            updateTxt(in);
+        }
     }
 
-    public void updateTxt(File file) {
+    private void updateImage(InputStream in) {
+        Image inputImage = null;
+        try {
+            inputImage = ImageIO.read(in);
+            ImageIcon icon = new ImageIcon(inputImage.getScaledInstance(300, -1, Image.SCALE_FAST));
+            image.setIcon(icon);
+            textArea.setVisible(false);
+            image.setVisible(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTxt(File file) {
         try {
             // todo мне не нравится такое чтение по частям
             try (FileInputStream fileInputStream = new FileInputStream(file);) {
