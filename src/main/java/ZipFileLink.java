@@ -1,11 +1,10 @@
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class ZipFileLink implements Link {
     /**
@@ -40,13 +39,13 @@ public class ZipFileLink implements Link {
 
     @Override
     public InputStream getInputStreamOfFile() throws IOException {
-        return null;
-//        return zipFile.getInputStream(getZipEntry());
+        byte[] jpeg = Files.readAllBytes(fs.getPath(path.toString()));
+        return new ByteArrayInputStream(jpeg);
     }
 
     @Override
     public Directory createDirectory() throws IOException {
-        String probeContentType = getProbeContentType();
+        String probeContentType = Link.getProbeContentType(getPath());
         if (probeContentType != null) {
             if ("application/zip".equals(probeContentType)) {
                 // todo zip внутри zip не работает
@@ -63,16 +62,6 @@ public class ZipFileLink implements Link {
             return new ZipDirectory(this, fs, true);
         }
         return null;
-    }
-
-    public String getProbeContentType() {
-        String probeContentType = null;
-        try {
-            probeContentType = Files.probeContentType(getPath());
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-        return probeContentType;
     }
 
     @Override

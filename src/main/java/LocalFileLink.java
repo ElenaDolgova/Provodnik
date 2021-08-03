@@ -29,18 +29,6 @@ public final class LocalFileLink implements Link {
     }
 
     @Override
-    public String getProbeContentType() {
-        String type = null;
-        try {
-            type = Files.probeContentType(getPath());
-            return type;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return type;
-    }
-
-    @Override
     public String getName() {
         return name;
     }

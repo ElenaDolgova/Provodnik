@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
-import java.util.SortedSet;
 
 public final class Renderer {
     private final JFrame GLOBAL_FRAME;
@@ -60,7 +59,7 @@ public final class Renderer {
      */
     public void updatePreviewPanel(Link displayFiles) {
         try {
-            PREVIEW_PANEL.update(displayFiles.getProbeContentType(), displayFiles.getInputStreamOfFile());
+            PREVIEW_PANEL.update(Link.getProbeContentType(displayFiles.getPath()), displayFiles.getInputStreamOfFile());
         } catch (IOException e) {
             e.printStackTrace();
         }

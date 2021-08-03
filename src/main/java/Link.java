@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public interface Link {
@@ -11,7 +12,15 @@ public interface Link {
 
     Directory createDirectory() throws IOException;
 
-    String getProbeContentType();
-
     InputStream getInputStreamOfFile() throws IOException;
+
+    public static String getProbeContentType(Path path) {
+        String probeContentType = null;
+        try {
+            probeContentType = Files.probeContentType(path);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        return probeContentType;
+    }
 }

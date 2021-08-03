@@ -42,8 +42,9 @@ public class PreviewPanel extends Component {
     }
 
     private void updateImage(InputStream in) {
-        Image inputImage = null;
+        Image inputImage;
         try {
+            ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
             ImageIcon icon = new ImageIcon(inputImage.getScaledInstance(300, -1, Image.SCALE_FAST));
             image.setIcon(icon);
