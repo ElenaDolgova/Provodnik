@@ -55,17 +55,6 @@ public class PreviewPanel extends Component {
         }
     }
 
-    private void updateTxt(File file) {
-        try {
-            // todo мне не нравится такое чтение по частям
-            try (FileInputStream fileInputStream = new FileInputStream(file);) {
-                updateTxt(fileInputStream);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void updateTxt(InputStream in) {
         image.setVisible(false);
         textArea.setVisible(true);

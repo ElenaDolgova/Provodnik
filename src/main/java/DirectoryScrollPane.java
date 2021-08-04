@@ -1,3 +1,5 @@
+import org.apache.commons.vfs2.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -7,7 +9,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -17,12 +21,36 @@ public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
     // todo понять, почему /Users/elena-dolgova/arcadia/arcadia/mbi/mbi/ не считает диреторией
     private static final File START_PATH = new File("/Users/elena-dolgova/Desktop");
+    private static final String FTP_PATH = "ftp://anonymous@ftp.bmc.com";
 
     private final JScrollPane jScrollPane;
 
-
     public DirectoryScrollPane() {
-        JList<LocalDirectory> displayDirectory = new JList<>(createDirectoryLinks(START_PATH));
+        JList<Directory> displayDirectory = null;
+        try {
+            FileSystemManager fsManager = VFS.getManager();
+            FileObject fileObject = fsManager.resolveFile(START_PATH.toURI());
+            displayDirectory = new JList<>(createLocalDirectoryLinks(fileObject));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        JScrollPane scrollPane = new JScrollPane(displayDirectory);
+        scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
+        scrollPane.setLayout(new ScrollPaneLayout());
+        this.jScrollPane = scrollPane;
+    }
+
+    public DirectoryScrollPane(int a) {
+        FileSystemManager fsManager;
+        JList<Directory> displayDirectory = null;
+        try {
+            fsManager = VFS.getManager();
+            FileSystemOptions opts = new FileSystemOptions();
+            FileObject fileObject = fsManager.resolveFile(FTP_PATH, opts);
+            displayDirectory = new JList<>(createFtpDirectoryLinks(fileObject));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
         scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
@@ -35,25 +63,16 @@ public class DirectoryScrollPane {
         viewport.addMouseListener(mouseListener);
     }
 
-    public DefaultListModel<LocalDirectory> createDirectoryLinks(File fullPath) {
-        List<LocalDirectory> links = getInitDirectoryLinks(fullPath);
-        DefaultListModel<LocalDirectory> labelJList = new DefaultListModel<>();
-        for (int i = links.size() - 1; i >= 0; --i) {
-            labelJList.addElement(links.get(i));
-        }
+    public DefaultListModel<Directory> createLocalDirectoryLinks(FileObject fileObject) throws FileSystemException {
+        DefaultListModel<Directory> labelJList = new DefaultListModel<>();
+        labelJList.addElement(new LocalDirectory(fileObject));
         return labelJList;
     }
 
-    private List<LocalDirectory> getInitDirectoryLinks(File fullPath) {
-        List<LocalDirectory> links = new ArrayList<>(fullPath.toPath().getNameCount());
-        String parent = fullPath.toPath().toAbsolutePath().toString();
-        while (parent != null) {
-            Path path = Paths.get(parent).toAbsolutePath();
-            LocalDirectory localDirectory = new LocalDirectory(path);
-            links.add(localDirectory);
-            parent = path.toFile().getParent();
-        }
-        return links;
+    public DefaultListModel<Directory> createFtpDirectoryLinks(FileObject fileObject) throws FileSystemException {
+        DefaultListModel<Directory> labelJList = new DefaultListModel<>();
+        labelJList.addElement(new FTPDirectory(fileObject));
+        return labelJList;
     }
 
     /**

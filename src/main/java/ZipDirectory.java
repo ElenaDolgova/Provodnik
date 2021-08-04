@@ -7,19 +7,13 @@ import java.util.stream.StreamSupport;
 
 public class ZipDirectory implements Directory {
     private final FileSystem fs;
-    private final String directoryName;
     private final Path path;
     private final String probeContentType;
 
     public ZipDirectory(ZipFileLink displayFiles, FileSystem fs) {
         this.path = displayFiles.getPath();
-        this.directoryName = createDirectoryName(this.path.getFileName());
-        this.probeContentType = Link.getProbeContentType(path);
+        this.probeContentType = displayFiles.getProbeContentType();
         this.fs = fs;
-    }
-
-    private String createDirectoryName(Path path) {
-        return String.valueOf(path.getFileName());
     }
 
     private static Stream<Path> streamAllFiles(FileSystem fs, int depth) {
@@ -55,8 +49,9 @@ public class ZipDirectory implements Directory {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public String getDirectoryName() {
-        return directoryName;
+        return String.valueOf(path.getFileName());
     }
 
     @Override

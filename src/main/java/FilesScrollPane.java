@@ -29,15 +29,12 @@ public class FilesScrollPane {
                 Link displayFiles = source.getSelectedValue();
                 // todо тест кейса на добавление не повторяющихся файлов
                 // тест на добавление только нового! файлов в директорию
-
-                // todo zip внутри zip
-                Directory newDirectory;
                 try {
-                    newDirectory = displayFiles.createDirectory();
-                    if (newDirectory != null) {
+                    if (displayFiles.isDirectory()) {
+                        Directory newDirectory = displayFiles.createDirectory();
                         renderer.addNewDirectory(newDirectory);
                     } else {
-                        renderer.updatePreviewPanel(displayFiles);
+                        renderer.updatePreviewPanel(displayFiles.getProbeContentType(),displayFiles);
                     }
                 } catch (IOException ioException) {
                     ioException.printStackTrace();

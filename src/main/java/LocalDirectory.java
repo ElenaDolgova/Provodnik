@@ -1,67 +1,45 @@
-import java.io.File;
+import org.apache.commons.vfs2.FileObject;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
  */
-public final class LocalDirectory implements Directory {
-    /**
-     * Имя диреткории
-     */
-    private final String directoryName;
-    /**
-     * Путь до файла
-     */
-    private final Path path;
+public record LocalDirectory(FileObject fileObject) implements Directory {
 
-    public LocalDirectory(Path path) {
-        this.path = path;
-        this.directoryName = createDirectoryName(path);
+    @Override
+    public List<Link> getFiles() {
+        try {
+            //todo тест кейс, а когда file.getChildren() мб null?
+            return Arrays.stream(fileObject.getChildren())
+                    .map(LocalDirectory::getLink)
+                    .collect(Collectors.toList());
+        } catch (org.apache.commons.vfs2.FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        return Collections.emptyList();
     }
 
-    public LocalDirectory(Link localFileLink) {
-        this.path = localFileLink.getPath();
-        this.directoryName = createDirectoryName(this.path);
+    private static Link getLink(FileObject fo) {
+        try {
+            if ("application/zip".equals(fo.getContent().getContentInfo().getContentType())) {
+                FileSystem fs = FileSystems.newFileSystem(
+                        Paths.get(fo.getPath().toString()), Collections.emptyMap());
+                return new ZipFileLink(fo.getPath(), fs, true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new LocalFileLink(fo);
     }
 
     @Override
     public String getDirectoryName() {
-        return directoryName;
-    }
-
-    /**
-     * Метод создает имя, отображаемой директории на панели с текущими диреткориями
-     * Если path - это корневая директория, то path.getFileName() возвращает null.
-     */
-    private static String createDirectoryName(Path path) {
-        return path.getFileName() == null ? "/" : path.getFileName() + "/";
-    }
-
-    @Override
-    public List<Link> getFiles() {
-        File selectedFile = path.toFile();
-        //todo тест кейс, а когда file.listFiles() мб null?
-        // когда не диреткория
-        List<Link> files = new ArrayList<>();
-        if (selectedFile.isDirectory()) {
-            Arrays.stream(Objects.requireNonNull(selectedFile.listFiles()))
-                    .map(file -> {
-                        try {
-                            if ("application/zip".equals(Files.probeContentType(file.toPath()))) {
-                                FileSystem fs = FileSystems.newFileSystem(
-                                        Paths.get(file.toPath().toString()), Collections.emptyMap());
-                                return new ZipFileLink(file.toPath(), fs, true);
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return new LocalFileLink(file);
-                    })
-                    .forEach(files::add);
-        }
-        return files;
+        return fileObject.getName().getBaseName();
     }
 
     @Override

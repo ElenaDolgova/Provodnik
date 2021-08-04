@@ -14,10 +14,10 @@ public interface Link {
 
     InputStream getInputStreamOfFile() throws IOException;
 
-    static String getProbeContentType(Path path) {
+    default String getProbeContentType() {
         String probeContentType = null;
         try {
-            probeContentType = Files.probeContentType(path);
+            probeContentType = Files.probeContentType(getPath());
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
