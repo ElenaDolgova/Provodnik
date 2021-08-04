@@ -74,11 +74,16 @@ public class PreviewPanel extends Component {
         }
     }
 
-    public static JLabel getImage() {
+    public static void unvisible() {
+        image.setVisible(false);
+        textArea.setVisible(false);
+    }
+
+    public JLabel getImage() {
         return image;
     }
 
-    public static JTextArea getTextArea() {
+    public JTextArea getTextArea() {
         return textArea;
     }
 }

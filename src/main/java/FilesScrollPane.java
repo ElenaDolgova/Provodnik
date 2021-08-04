@@ -24,6 +24,7 @@ public class FilesScrollPane {
 
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
+                PreviewPanel.unvisible();
                 // todo по пути /Users/tmpAdmin/ не обновляется файловый таб
                 JList<Link> source = (JList<Link>) e.getSource();
                 Link displayFiles = source.getSelectedValue();
@@ -34,7 +35,7 @@ public class FilesScrollPane {
                         Directory newDirectory = displayFiles.createDirectory();
                         renderer.addNewDirectory(newDirectory);
                     } else {
-                        renderer.updatePreviewPanel(displayFiles.getProbeContentType(),displayFiles);
+                        renderer.updatePreviewPanel(displayFiles.getProbeContentType(), displayFiles);
                     }
                 } catch (IOException ioException) {
                     ioException.printStackTrace();

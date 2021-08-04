@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 public class FTPDirectory implements Directory {
 
     private final FileObject fileObject;
-
     //https://www.mmnt.net/
     public FTPDirectory(FileObject fileObject) {
         this.fileObject = fileObject;
