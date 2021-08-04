@@ -7,12 +7,17 @@ version '1.0'
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:20.1.0'
+//    implementation 'org.jetbrains:annotations:20.1.0'
     implementation 'commons-net:commons-net:3.6'
     implementation 'org.apache.commons:commons-vfs2:2.9.0'
+    implementation 'org.apache.commons:commons-compress:1.18'
+    implementation 'com.sshtools:vfs2nio:0.0.1-SNAPSHOT'
+//    implementation 'com.github.robtimus:ftp-fs:2.2.1'
+//    implementation 'com.github.fge:java7-fs-ftp:0.1-SNAPSHOT'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'

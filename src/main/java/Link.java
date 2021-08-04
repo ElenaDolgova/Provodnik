@@ -14,7 +14,7 @@ public interface Link {
 
     InputStream getInputStreamOfFile() throws IOException;
 
-    public static String getProbeContentType(Path path) {
+    static String getProbeContentType(Path path) {
         String probeContentType = null;
         try {
             probeContentType = Files.probeContentType(path);

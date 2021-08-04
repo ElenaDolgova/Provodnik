@@ -33,7 +33,6 @@ public class FilesScrollPane {
                 // todo zip внутри zip
                 Directory newDirectory;
                 try {
-                    // вот тут важный момент. Если это zip, то возвращается директория.
                     newDirectory = displayFiles.createDirectory();
                     if (newDirectory != null) {
                         renderer.addNewDirectory(newDirectory);

@@ -1,35 +1,25 @@
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.util.Collections;
 
 public class ZipFileLink implements Link {
-    /**
-     * Имя entry, по которому можно найти ZipEntry в zipFile
-     */
-    private final String entryName;
-    /**
-     * Имя файла
-     */
-    private final File file;
+    private final boolean isFirstZip;
 
     private final FileSystem fs;
 
     private final Path path;
 
-    public ZipFileLink(Path path, File file, FileSystem fs) {
-        this.entryName = path == null ? null : String.valueOf(path.getFileName());
-        this.file = file;
+    public ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) {
         this.fs = fs;
         this.path = path;
+        this.isFirstZip = isFirstZip;
     }
 
     @Override
     public Path getPath() {
-        return file.toPath();
+        return path;
     }
 
     @Override
@@ -48,25 +38,28 @@ public class ZipFileLink implements Link {
         String probeContentType = Link.getProbeContentType(getPath());
         if (probeContentType != null) {
             if ("application/zip".equals(probeContentType)) {
-                // todo zip внутри zip не работает
-                if (entryName == null) {
-                    // создается просто zip
-                    return new ZipDirectory(this);
+                if (isFirstZip) {
+                    // создается просто самый первый zip
+                    FileSystem newFileSystem =
+                            FileSystems.newFileSystem(fs.getPath(path.toString()), Collections.emptyMap());
+                    return new ZipDirectory(this, newFileSystem);
                 } else {
-                    //  файл ИЛИ zip внутри zip
-                    return new ZipDirectory(this, fs, false);
+                    //  zip внутри zip Создается новая файловая подсистема
+                    FileSystem newFileSystem =
+                            FileSystems.newFileSystem(fs.getPath(path.toString()), Collections.emptyMap());
+                    return new ZipDirectory(this, newFileSystem);
                 }
             }
         } else if (isDirectory()) {
             // когда директория внутри zip
-            return new ZipDirectory(this, fs, true);
+            return new ZipDirectory(this, fs);
         }
         return null;
     }
 
     @Override
     public String getName() {
-        return file.getName();
+        return path.getFileName().toString();
     }
 
     @Override

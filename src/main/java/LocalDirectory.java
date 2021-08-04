@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
-import java.util.zip.ZipFile;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
@@ -53,7 +52,7 @@ public final class LocalDirectory implements Directory {
                             if ("application/zip".equals(Files.probeContentType(file.toPath()))) {
                                 FileSystem fs = FileSystems.newFileSystem(
                                         Paths.get(file.toPath().toString()), Collections.emptyMap());
-                                return new ZipFileLink(null, file, fs);
+                                return new ZipFileLink(file.toPath(), fs, true);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
