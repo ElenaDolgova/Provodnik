@@ -12,10 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 
-/**
- *
- */
-// todo один интерфейс для FileScrollPane тоже?
 public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
     private static final String FTP_PATH = "ftp://anonymous@ftp.bmc.com";
@@ -75,15 +71,17 @@ public class DirectoryScrollPane {
 
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                JList<Directory> source = (JList<Directory>) e.getSource();
-                // убираем таб с превью
-                PreviewPanel.unvisible();
-                // обновляем содержимое панели с файлами
-                renderer.updateFilesScrollPane(source.getSelectedValue());
-                //схлопываем директорию до нажатой
-                DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) source.getModel();
-                for (int i = sourceModel.getSize() - 1; i > source.getSelectedIndex(); --i) {
-                    sourceModel.remove(i);
+                if (e.getClickCount() == 2) {
+                    JList<Directory> source = (JList<Directory>) e.getSource();
+                    // убираем таб с превью
+                    PreviewPanel.hideContent();
+                    // обновляем содержимое панели с файлами
+                    renderer.updateFilesScrollPane(source.getSelectedValue());
+                    //схлопываем директорию до нажатой
+                    DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) source.getModel();
+                    for (int i = sourceModel.getSize() - 1; i > source.getSelectedIndex(); --i) {
+                        sourceModel.remove(i);
+                    }
                 }
             }
         };
@@ -104,7 +102,7 @@ public class DirectoryScrollPane {
         try {
             if (StringUtils.isNotBlank(ftpPath)) {
                 renderer.clearFileScrollPane();
-                PreviewPanel.unvisible();
+                PreviewPanel.hideContent();
                 FileObject fileObject = VFS.getManager().resolveFile(ftpPath, new FileSystemOptions());
                 FTPDirectory directory = new FTPDirectory(fileObject);
                 getClearedDirectory().addElement(directory);
@@ -126,7 +124,7 @@ public class DirectoryScrollPane {
     private ActionListener getLocalButtonMouseListener(Renderer renderer) {
         return e -> {
             renderer.clearFileScrollPane();
-            PreviewPanel.unvisible();
+            PreviewPanel.hideContent();
             File defaultPath = FileSystemView.getFileSystemView().getRoots()[0];
             FileSystem fs = defaultPath.toPath().getFileSystem();
             getClearedDirectory().addElement(new LocalDirectory(fs, defaultPath.toPath()));

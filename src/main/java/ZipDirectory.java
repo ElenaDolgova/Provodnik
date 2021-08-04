@@ -16,16 +16,16 @@ public class ZipDirectory implements Directory {
     }
 
     @Override
-    public List<Link> getFiles() {
+    public Collection<Link> getFiles() {
         return downloadFiles(null);
     }
 
     @Override
-    public List<Link> getFiles(String ext) {
+    public Collection<Link> getFiles(String ext) {
         return downloadFiles(ext);
     }
 
-    private List<Link> downloadFiles(String ext) {
+    private Collection<Link> downloadFiles(String ext) {
         if ("application/zip".equals(probeContentType)) {
             return Directory.streamAllFiles(fs, 2)
                     .filter(p -> {
@@ -38,6 +38,7 @@ public class ZipDirectory implements Directory {
                                 p.startsWith("/" + getDirectoryName().substring(0, getDirectoryName().lastIndexOf(".")));
                     })
                     .map(path -> new ZipFileLink(path, fs, false))
+                    .sorted()
                     .collect(Collectors.toList());
         }
         int depth = path.getNameCount() + 1;

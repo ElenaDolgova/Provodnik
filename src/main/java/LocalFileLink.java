@@ -42,4 +42,14 @@ public record LocalFileLink(FileSystem fs, Path path) implements Link {
     public String toString() {
         return getName();
     }
+
+    @Override
+    public int compareTo(Link o) {
+        if (o == null) {
+            return 1;
+        } else if (getName() == null) {
+            return -1;
+        }
+        return getName().compareTo(o.getName());
+    }
 }

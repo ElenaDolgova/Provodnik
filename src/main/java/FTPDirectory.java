@@ -3,8 +3,8 @@ import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.FileSystemException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class FTPDirectory implements Directory {
@@ -17,16 +17,16 @@ public class FTPDirectory implements Directory {
     }
 
     @Override
-    public List<Link> getFiles() {
+    public Collection<Link> getFiles() {
         return downloadFiles(null);
     }
 
     @Override
-    public List<Link> getFiles(String ext) {
+    public Collection<Link> getFiles(String ext) {
         return downloadFiles(ext);
     }
 
-    private List<Link> downloadFiles(String ext) {
+    private Collection<Link> downloadFiles(String ext) {
         try {
             return Arrays.stream(fileObject.getChildren())
                     .filter(p -> {
@@ -40,6 +40,7 @@ public class FTPDirectory implements Directory {
                         return false;
                     })
                     .map(FtpFileLink::new)
+                    .sorted()
                     .collect(Collectors.toList());
         } catch (FileSystemException e) {
             e.printStackTrace();

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -12,12 +12,12 @@ public interface Directory {
     /**
      * @return список файлов текущей директории
      */
-    List<Link> getFiles();
+    Collection<Link> getFiles();
 
     /**
      * @return список файлов текущей директории c филтрацией по расширению ext
      */
-    List<Link> getFiles(String ext);
+    Collection<Link> getFiles(String ext);
 
     /**
      * @return имя текущей директории

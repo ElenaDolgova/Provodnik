@@ -38,21 +38,24 @@ public class FilesScrollPane {
         // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
         // 3. Зашли в поддерево, вышли из него -> зашли в более глубокое
         return new MouseAdapter() {
+
             public void mouseClicked(MouseEvent e) {
-                PreviewPanel.unvisible();
-                JList<Link> source = (JList<Link>) e.getSource();
-                Link displayFiles = source.getSelectedValue();
-                // todо тест кейса на добавление не повторяющихся файлов
-                // тест на добавление только нового! файлов в директорию
-                try {
-                    if (displayFiles.isDirectory()) {
-                        Directory newDirectory = displayFiles.createDirectory();
-                        renderer.addNewDirectory(newDirectory);
-                    } else {
-                        renderer.updatePreviewPanel(displayFiles.getProbeContentType(), displayFiles);
+                if (e.getClickCount() == 2) {
+                    PreviewPanel.hideContent();
+                    JList<Link> source = (JList<Link>) e.getSource();
+                    Link displayFiles = source.getSelectedValue();
+                    // todо тест кейса на добавление не повторяющихся файлов
+                    // тест на добавление только нового! файлов в директорию
+                    try {
+                        if (displayFiles.isDirectory()) {
+                            Directory newDirectory = displayFiles.createDirectory();
+                            renderer.addNewDirectory(newDirectory);
+                        } else {
+                            renderer.updatePreviewPanel(displayFiles.getProbeContentType(), displayFiles);
+                        }
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
                     }
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
                 }
             }
         };

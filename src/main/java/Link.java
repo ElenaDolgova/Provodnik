@@ -3,7 +3,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface Link {
+public interface Link extends Comparable<Link> {
     Path getPath();
 
     boolean isDirectory();

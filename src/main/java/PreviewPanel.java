@@ -46,7 +46,9 @@ public class PreviewPanel extends Component {
         try {
             ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
-            ImageIcon icon = new ImageIcon(inputImage.getScaledInstance(300, -1, Image.SCALE_FAST));
+            ImageIcon icon = new ImageIcon(
+                    inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST)
+            );
             image.setIcon(icon);
             textArea.setVisible(false);
             image.setVisible(true);
@@ -74,16 +76,8 @@ public class PreviewPanel extends Component {
         }
     }
 
-    public static void unvisible() {
+    public static void hideContent() {
         image.setVisible(false);
         textArea.setVisible(false);
-    }
-
-    public JLabel getImage() {
-        return image;
-    }
-
-    public JTextArea getTextArea() {
-        return textArea;
     }
 }

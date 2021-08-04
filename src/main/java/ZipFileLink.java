@@ -54,4 +54,12 @@ public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implemen
     public String toString() {
         return getName();
     }
+
+    @Override
+    public int compareTo(Link o) {
+        if (o == null) {
+            return 1;
+        }
+        return getName().compareTo(o.getName());
+    }
 }

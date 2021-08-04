@@ -65,4 +65,12 @@ public class FtpFileLink implements Link {
     public String toString() {
         return getName();
     }
+
+    @Override
+    public int compareTo(Link o) {
+        if (o == null) {
+            return 1;
+        }
+        return getName().compareTo(o.getName());
+    }
 }
