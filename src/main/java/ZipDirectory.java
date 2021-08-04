@@ -1,3 +1,5 @@
+import org.apache.commons.lang3.StringUtils;
+
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,9 +17,21 @@ public class ZipDirectory implements Directory {
 
     @Override
     public List<Link> getFiles() {
-        // встретили очередной zip
+        return downloadFiles(null);
+    }
+
+    @Override
+    public List<Link> getFiles(String ext) {
+        return downloadFiles(ext);
+    }
+
+    private List<Link> downloadFiles(String ext) {
         if ("application/zip".equals(probeContentType)) {
             return Directory.streamAllFiles(fs, 2)
+                    .filter(p -> {
+                        if (ext == null || StringUtils.isBlank(ext)) return true;
+                        return ext.equals(Directory.getExtension(p));
+                    })
                     .filter(p -> {
                         Path parent = p.getParent();
                         return p.getNameCount() > 1 && parent != null &&
@@ -28,7 +42,9 @@ public class ZipDirectory implements Directory {
         }
         int depth = path.getNameCount() + 1;
         return Directory.streamAllFiles(fs, depth)
-                .filter(p -> p.startsWith("/" + path) && p.toString().length() > path.toString().length())
+                .filter(p -> p.startsWith("/" + path))
+                .filter(p -> ext == null || StringUtils.isNotBlank(ext) || p.endsWith(ext))
+                .filter(p -> p.toString().length() > path.toString().length())
                 .map(path -> new ZipFileLink(path, fs, false))
                 .collect(Collectors.toList());
     }

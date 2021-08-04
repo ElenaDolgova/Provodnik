@@ -1,3 +1,4 @@
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.FileSystemException;
 
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 public class FTPDirectory implements Directory {
 
     private final FileObject fileObject;
+
     //https://www.mmnt.net/
     public FTPDirectory(FileObject fileObject) {
         this.fileObject = fileObject;
@@ -16,8 +18,27 @@ public class FTPDirectory implements Directory {
 
     @Override
     public List<Link> getFiles() {
+        return downloadFiles(null);
+    }
+
+    @Override
+    public List<Link> getFiles(String ext) {
+        return downloadFiles(ext);
+    }
+
+    private List<Link> downloadFiles(String ext) {
         try {
             return Arrays.stream(fileObject.getChildren())
+                    .filter(p -> {
+                        try {
+                            if (ext == null || StringUtils.isBlank(ext)) return true;
+                            String contentEncoding = p.getContent().getFile().getName().getExtension();
+                            return ext.equals(contentEncoding);
+                        } catch (FileSystemException e) {
+                            e.printStackTrace();
+                        }
+                        return false;
+                    })
                     .map(FtpFileLink::new)
                     .collect(Collectors.toList());
         } catch (FileSystemException e) {

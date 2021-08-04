@@ -23,13 +23,32 @@ public class Renderer {
         displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
     }
 
+    public void updateFilesScrollPane(String ext) {
+        Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
+        JList<Link> displayFiles = getDirectoryFiles(lastDirectory, ext);
+        filesScrollPane.getScrollPane().setViewportView(displayFiles);
+        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
+    }
+
     /**
      * Метод возвращает список файлов текущей директории
      */
     private JList<Link> getDirectoryFiles(Directory directory) {
-        List<Link> set = directory.getFiles();
+        List<Link> files = directory.getFiles();
+        return mapToJList(files);
+    }
+
+    /**
+     * Метод возвращает список файлов текущей директории c фильтрацией по ext
+     */
+    private JList<Link> getDirectoryFiles(Directory directory, String ext) {
+        List<Link> files = directory.getFiles(ext);
+        return mapToJList(files);
+    }
+
+    private JList<Link> mapToJList(List<Link> files) {
         DefaultListModel<Link> labelJList = new DefaultListModel<>();
-        set.forEach(labelJList::addElement);
+        files.forEach(labelJList::addElement);
         return new JList<>(labelJList);
     }
 

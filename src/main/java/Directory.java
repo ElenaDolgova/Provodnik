@@ -1,3 +1,5 @@
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -11,6 +13,11 @@ public interface Directory {
      * @return список файлов текущей директории
      */
     List<Link> getFiles();
+
+    /**
+     * @return список файлов текущей директории c филтрацией по расширению ext
+     */
+    List<Link> getFiles(String ext);
 
     /**
      * @return имя текущей директории
@@ -28,5 +35,9 @@ public interface Directory {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    static String getExtension(Path p) {
+        return FilenameUtils.getExtension(p.toString());
     }
 }

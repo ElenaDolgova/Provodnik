@@ -1,3 +1,5 @@
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -10,8 +12,18 @@ public record LocalDirectory(FileSystem fs, Path path) implements Directory {
 
     @Override
     public List<Link> getFiles() {
+        return downloadFiles(null);
+    }
+
+    @Override
+    public List<Link> getFiles(String ext) {
+        return downloadFiles(ext);
+    }
+
+    private List<Link> downloadFiles(String ext) {
         return Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
+                .filter(p -> ext == null || StringUtils.isBlank(ext) || ext.equals(Directory.getExtension(p)))
                 .map(this::getLink)
                 .collect(Collectors.toList());
     }

@@ -18,8 +18,6 @@ import java.nio.file.FileSystem;
 // todo один интерфейс для FileScrollPane тоже?
 public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
-    // todo понять, почему /Users/elena-dolgova/arcadia/arcadia/mbi/mbi/ не считает диреторией
-//    private static final File START_PATH = new File("/Users/elena-dolgova/Desktop");
     private static final String FTP_PATH = "ftp://anonymous@ftp.bmc.com";
 
     private final JPanel mainDirectoryPane;
@@ -153,7 +151,7 @@ public class DirectoryScrollPane {
         return sourceModel;
     }
 
-    private Directory getLastDirectoryFromScroll() {
+    public Directory getLastDirectoryFromScroll() {
         JList<Directory> displayDirectory = (JList<Directory>) jScrollPane.getViewport().getView();
         if (displayDirectory != null) {
             DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
