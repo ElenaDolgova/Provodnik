@@ -45,7 +45,7 @@ public class ZipDirectory implements Directory {
         return Directory.streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
                 .filter(p -> ext == null || StringUtils.isNotBlank(ext) || p.endsWith(ext))
-                .filter(p -> p.toString().length() > path.toString().length())
+                .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileLink(path, fs, false))
                 .collect(Collectors.toList());
     }
