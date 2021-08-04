@@ -15,9 +15,13 @@ public interface Link {
     InputStream getInputStreamOfFile() throws IOException;
 
     default String getProbeContentType() {
+        return getProbeContentType(getPath());
+    }
+
+    static String getProbeContentType(Path path) {
         String probeContentType = null;
         try {
-            probeContentType = Files.probeContentType(getPath());
+            probeContentType = Files.probeContentType(path);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

@@ -1,11 +1,5 @@
-import org.apache.commons.vfs2.*;
-
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.stream.StreamSupport;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 

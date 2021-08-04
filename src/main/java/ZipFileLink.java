@@ -1,7 +1,10 @@
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implements Link {
@@ -18,8 +21,8 @@ public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implemen
 
     @Override
     public InputStream getInputStreamOfFile() throws IOException {
-        byte[] jpeg = Files.readAllBytes(fs.getPath(path.toString()));
-        return new ByteArrayInputStream(jpeg);
+        byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
+        return new ByteArrayInputStream(bytes);
     }
 
     @Override

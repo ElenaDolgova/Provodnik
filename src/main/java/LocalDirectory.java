@@ -1,5 +1,3 @@
-import org.apache.commons.vfs2.FileObject;
-
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -8,38 +6,34 @@ import java.util.stream.Collectors;
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
  */
-public record LocalDirectory(FileObject fileObject) implements Directory {
+public record LocalDirectory(FileSystem fs, Path path) implements Directory {
 
     @Override
     public List<Link> getFiles() {
-        try {
-            //todo тест кейс, а когда file.getChildren() мб null?
-            return Arrays.stream(fileObject.getChildren())
-                    .map(LocalDirectory::getLink)
-                    .collect(Collectors.toList());
-        } catch (org.apache.commons.vfs2.FileSystemException e) {
-            e.printStackTrace();
-        }
-
-        return Collections.emptyList();
+        return Directory.walkFiles(path, 1)
+                .filter(p -> p.getNameCount() == path.getNameCount() + 1)
+                .map(this::getLink)
+                .collect(Collectors.toList());
     }
 
-    private static Link getLink(FileObject fo) {
+    private Link getLink(Path path) {
         try {
-            if ("application/zip".equals(fo.getContent().getContentInfo().getContentType())) {
-                FileSystem fs = FileSystems.newFileSystem(
-                        Paths.get(fo.getPath().toString()), Collections.emptyMap());
-                return new ZipFileLink(fo.getPath(), fs, true);
+            if ("application/zip".equals(Link.getProbeContentType(path))) {
+                FileSystem fs = FileSystems.newFileSystem(path, Collections.emptyMap());
+                return new ZipFileLink(path, fs, true);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new LocalFileLink(fo);
+        return new LocalFileLink(fs, path);
     }
 
     @Override
     public String getDirectoryName() {
-        return fileObject.getName().getBaseName();
+        if (path.getFileName() == null) {
+            return path.toString();
+        }
+        return path.getFileName().toString();
     }
 
     @Override

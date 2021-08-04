@@ -14,7 +14,7 @@ public class FilesScrollPane {
     }
 
     /**
-     * Вызывается при нажатии на файл в табе с файлами (в каталоге) {@link MainFrame.FILES_SCROLL_PANE}
+     * Вызывается при нажатии на файл в табе с файлами (в каталоге) {@link FILES_SCROLL_PANE}
      */
     public static MouseAdapter getMouseListener(Renderer renderer) {
         // тест кейс:

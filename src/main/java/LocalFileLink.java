@@ -1,41 +1,41 @@
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record LocalFileLink(FileObject fileObject) implements Link {
+public record LocalFileLink(FileSystem fs, Path path) implements Link {
 
     @Override
     public Directory createDirectory() {
-        return new LocalDirectory(fileObject);
+        return new LocalDirectory(fs, path);
     }
 
     @Override
     public InputStream getInputStreamOfFile() throws IOException {
-        return fileObject.getContent().getInputStream();
+        byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
+        return new ByteArrayInputStream(bytes);
     }
 
     @Override
     public String getName() {
-        return fileObject.getName().getBaseName();
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        return fileName.toString();
     }
 
     @Override
     public boolean isDirectory() {
-        try {
-            return fileObject.isFolder();
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return path.toFile().isDirectory();
     }
 
 
     @Override
     public Path getPath() {
-        return fileObject.getPath();
+        return path;
     }
 
     @Override
