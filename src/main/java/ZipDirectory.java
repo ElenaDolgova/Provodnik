@@ -1,100 +1,62 @@
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import org.apache.commons.lang3.StringUtils;
+
+import java.nio.file.*;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.stream.Collectors;
 
 public class ZipDirectory implements Directory {
-    /**
-     * Имя диреткории
-     */
-    private final String directoryName;
-    /**
-     * Путь до файла
-     */
+    private final FileSystem fs;
     private final Path path;
+    private final String probeContentType;
 
-    private final ZipFile zipFile;
-
-    private final String globalParent;
-
-    public ZipDirectory(Link displayFiles) throws IOException {
-        this.path = displayFiles.createPath();
-        this.zipFile = new ZipFile(displayFiles.createFile());
-        this.directoryName = createDirectoryName(this.path.getFileName());
-        this.globalParent = null;
-    }
-
-    public ZipDirectory(ZipFileLink displayFiles, ZipFile zipFile) {
-        this.path = displayFiles.createPath();
-        this.zipFile = zipFile;
-        this.directoryName = createDirectoryName(this.path.getFileName());
-        this.globalParent = displayFiles.getParent();
-    }
-
-    private String createDirectoryName(Path path) {
-        return String.valueOf(path.getFileName());
+    public ZipDirectory(ZipFileLink displayFiles, FileSystem fs) {
+        this.path = displayFiles.getPath();
+        this.probeContentType = displayFiles.getProbeContentType();
+        this.fs = fs;
     }
 
     @Override
-    public void updateFilesScrollPane() {
-        JList<Link> displayFiles = getDirectoryFiles();
-        MainFrame.FILES_SCROLL_PANE.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener());
+    public Collection<Link> getFiles() {
+        return downloadFiles(null);
     }
 
-    /**
-     * метод отвечает за отображение файлов на панели с файлами {@link FilesScrollPane}
-     */
-    private JList<Link> getDirectoryFiles() {
-        DefaultListModel<Link> labelJList = new DefaultListModel<>();
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        SortedSet<Link> sortedFiles = new TreeSet<>();
-        String currentGlobalParent = null;
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            String entryName = entry.getName();
-            File file = new File(entryName);
-            if (globalParent == null) {
-                if (file.getParent() == null) {
-                    currentGlobalParent = file.getName();
-                } else if (file.getParent().equals(currentGlobalParent)) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
-                }
-            } else {
-                if (path.toString().equals(file.getParent())) {
-                    sortedFiles.add(new ZipFileLink(zipFile, entryName, file));
-                }
-            }
+    @Override
+    public Collection<Link> getFiles(String ext) {
+        return downloadFiles(ext);
+    }
+
+    private Collection<Link> downloadFiles(String ext) {
+        if ("application/zip".equals(probeContentType)) {
+            return Directory.streamAllFiles(fs, 2)
+                    .filter(p -> {
+                        if (ext == null || StringUtils.isBlank(ext)) return true;
+                        return ext.equals(Directory.getExtension(p));
+                    })
+                    .filter(p -> {
+                        Path parent = p.getParent();
+                        return p.getNameCount() > 1 && parent != null &&
+                                p.startsWith("/" + getDirectoryName().substring(0, getDirectoryName().lastIndexOf(".")));
+                    })
+                    .map(path -> new ZipFileLink(path, fs, false))
+                    .sorted()
+                    .collect(Collectors.toList());
         }
-        sortedFiles.forEach(labelJList::addElement);
-        return new JList<>(labelJList);
+        int depth = path.getNameCount() + 1;
+        return Directory.streamAllFiles(fs, depth)
+                .filter(p -> p.startsWith("/" + path))
+                .filter(p -> ext == null || StringUtils.isNotBlank(ext) || p.endsWith(ext))
+                .filter(p -> p.getNameCount() > path.getNameCount())
+                .map(path -> new ZipFileLink(path, fs, false))
+                .collect(Collectors.toList());
     }
 
+    @Override
     public String getDirectoryName() {
-        return directoryName;
+        return String.valueOf(path.getFileName());
     }
 
     @Override
     public String toString() {
         return getDirectoryName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ZipDirectory that = (ZipDirectory) o;
-        return Objects.equals(directoryName, that.directoryName) && Objects.equals(path, that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(directoryName, path);
     }
 }
