@@ -35,15 +35,17 @@ public class PreviewPanel extends Component {
         textArea.setEditable(false);
     }
 
-    public void update(String probeContentType, InputStream in) {
+    public void update(String probeContentType, InputStream in, Renderer renderer) {
         if (probeContentType == null) {
             return;
         }
+        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(true));
         if (probeContentType.contains("image")) {
             updateImage(in);
         } else if (probeContentType.contains("text")) {
             updateTxt(in);
         }
+        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
     }
 
     private void updateImage(InputStream in) {
@@ -51,9 +53,8 @@ public class PreviewPanel extends Component {
         try {
             ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
-            ImageIcon icon = new ImageIcon(
-                    inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST)
-            );
+            ImageIcon icon =
+                    new ImageIcon(inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST));
             image.setIcon(icon);
             textArea.setVisible(false);
             image.setVisible(true);

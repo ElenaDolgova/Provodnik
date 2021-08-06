@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -12,7 +13,7 @@ public interface Directory {
     /**
      * @return todo
      */
-    void getFiles(Consumer<Link> action, String ext);
+    void getFiles(Consumer<List<? extends Link>> action, String ext);
 
     /**
      * @return имя текущей директории

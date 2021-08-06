@@ -67,7 +67,7 @@ public class Renderer {
             new SwingWorker<Void, Link>() {
                 @Override
                 protected Void doInBackground() {
-                    directory.getFiles(this::publish, ext);
+                    directory.getFiles(it -> it.forEach(this::publish), ext);
                     return null;
                 }
 
@@ -99,7 +99,7 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Link displayFiles) {
         try {
-            displayFiles.processFile(it -> previewPanel.update(probeContentType, it));
+            displayFiles.processFile(it -> previewPanel.update(probeContentType, it, this));
         } catch (IOException e) {
             e.printStackTrace();
         }

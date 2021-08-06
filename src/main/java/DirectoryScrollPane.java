@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 
 public class DirectoryScrollPane {
@@ -112,10 +113,10 @@ public class DirectoryScrollPane {
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
         try {
             if (StringUtils.isNotBlank(ftpPath)) {
-
-                FTPClient f = new FTPClient();
-                String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
-                f.connect(server);
+                FTPClient f = new FTPClient(); //ftp.bmc.com
+                // ftp://anonymous@ftp.bmc.com
+                ftpPath = "ftp.bmc.com";
+                f.connect(ftpPath);
                 f.login("anonymous", "");
                 renderer.clearFileScrollPane();
                 PreviewPanel.hideContent();
@@ -125,7 +126,7 @@ public class DirectoryScrollPane {
                 connectToFtpButton.setText("Disconnect");
                 changeButtonActionListener(getLocalButtonMouseListener(renderer));
             }
-        } catch (FileSystemException p) {
+        } catch (UnknownHostException p) {
             String ftpPathNew = JOptionPane.showInputDialog(connectToFtpButton,
                     new String[]{"Извините, попробуйте снова", "Формат: ftp://user:password@host:port"},
                     "Введите данные подключения к ftp серверу",
