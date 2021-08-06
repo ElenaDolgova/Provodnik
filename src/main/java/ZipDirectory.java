@@ -1,4 +1,4 @@
-import org.apache.commons.lang3.StringUtils;
+//import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.*;
 import java.util.*;
@@ -29,7 +29,7 @@ public class ZipDirectory implements Directory {
         if ("application/zip".equals(probeContentType)) {
             return Directory.streamAllFiles(fs, 2)
                     .filter(p -> {
-                        if (ext == null || StringUtils.isBlank(ext)) return true;
+                        if (ext == null || ext.length() ==0) return true;
                         return ext.equals(Directory.getExtension(p));
                     })
                     .filter(p -> {
@@ -44,7 +44,7 @@ public class ZipDirectory implements Directory {
         int depth = path.getNameCount() + 1;
         return Directory.streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
-                .filter(p -> ext == null || StringUtils.isNotBlank(ext) || p.endsWith(ext))
+                .filter(p -> ext == null || ext.length() ==0 || p.endsWith(ext))
                 .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileLink(path, fs, false))
                 .collect(Collectors.toList());

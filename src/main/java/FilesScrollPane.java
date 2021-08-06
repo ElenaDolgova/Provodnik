@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.IOException;
 
 public class FilesScrollPane {
@@ -12,7 +10,7 @@ public class FilesScrollPane {
 
     public FilesScrollPane() {
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(Dimensions.DIRECTORY_SCROLL_PANE_WIDTH + 3, 1, Dimensions.FILE_SCROLL_PANE_WIDTH, Dimensions.FILE_SCROLL_PANE_HEIGHT);
+//        scrollPane.setBounds(Dimensions.DIRECTORY_SCROLL_PANE_WIDTH + 3, 1, Dimensions.FILE_SCROLL_PANE_WIDTH, Dimensions.FILE_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainFileScrollPane = new JPanel(new BorderLayout());
@@ -21,8 +19,9 @@ public class FilesScrollPane {
         this.mainFileScrollPane.add(textField, BorderLayout.NORTH);
     }
 
-    public void init(Renderer renderer) {
+    public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
         this.textField.addActionListener(getTextFiledListener(renderer));
+        GLOBAL_FRAME.getContentPane().add(mainFileScrollPane, BorderLayout.CENTER);
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -63,9 +62,5 @@ public class FilesScrollPane {
 
     public JScrollPane getScrollPane() {
         return jScrollPane;
-    }
-
-    public JPanel getMainFileScrollPane() {
-        return mainFileScrollPane;
     }
 }

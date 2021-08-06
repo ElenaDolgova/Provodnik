@@ -7,7 +7,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
-public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implements Link {
+public class ZipFileLink implements Link {
+    private final Path path;
+    private final FileSystem fs;
+    private final boolean isFirstZip;
+
+    public ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) {
+        this.path = path;
+        this.fs = fs;
+        this.isFirstZip = isFirstZip;
+    }
 
     @Override
     public Path getPath() {

@@ -5,7 +5,15 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record LocalFileLink(FileSystem fs, Path path) implements Link {
+public class LocalFileLink implements Link {
+
+    private final FileSystem fs;
+    private final Path path;
+
+    public LocalFileLink(FileSystem fs, Path path) {
+        this.fs = fs;
+        this.path = path;
+    }
 
     @Override
     public Directory createDirectory() {

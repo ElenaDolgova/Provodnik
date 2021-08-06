@@ -29,12 +29,20 @@ public class Renderer {
         this.folderIcon = folderIcon;
     }
 
+    /**
+     * Метод обновляет файлы для текущей диретории
+     * @param directory Дирктория, файлы для которой нужно обновить
+     */
     public void updateFilesScrollPane(Directory directory) {
         JList<Link> displayFiles = getDirectoryFiles(directory);
         filesScrollPane.getScrollPane().setViewportView(displayFiles);
         displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
     }
 
+    /**
+     * Метод обнолвяет файлы самой послденей директории с учетом фильтра по расширению
+     * @param ext Расширение, по которому нужно пофильтровать файлы
+     */
     public void updateFilesScrollPane(String ext) {
         Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
         JList<Link> displayFiles = getDirectoryFiles(lastDirectory, ext);

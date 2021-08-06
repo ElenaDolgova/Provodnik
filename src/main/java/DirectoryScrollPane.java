@@ -1,4 +1,5 @@
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.net.ftp.*;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -32,7 +33,7 @@ public class DirectoryScrollPane {
             e.printStackTrace();
         }
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
-        scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
+//        scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainDirectoryPane = new JPanel(new BorderLayout());
@@ -41,12 +42,13 @@ public class DirectoryScrollPane {
         this.mainDirectoryPane.add(this.jScrollPane, BorderLayout.CENTER);
     }
 
-    public void init(Renderer renderer) {
+    public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
         MouseListener mouseListener = getDirectoryListener(renderer);
         Component viewport = jScrollPane.getViewport().getView();
         viewport.addMouseListener(mouseListener);
         this.connectToFtpButton.addActionListener(getFtpButtonMouseListener(renderer));
         renderer.updateFilesScrollPane(getLastDirectoryFromScroll());
+        GLOBAL_FRAME.getContentPane().add(mainDirectoryPane, BorderLayout.WEST);
     }
 
     public DefaultListModel<Directory> createLocalDirectoryLinks(FileSystem fs,
@@ -62,7 +64,6 @@ public class DirectoryScrollPane {
      * то директории перестают отображаться ровно до выбранной и на панели с просмоторщиком файлов начинают
      * отображаться файлы, выбранной директории.
      */
-    // todo не с первого раза работают кнопки, может попробовать другой листенер?
     private MouseAdapter getDirectoryListener(Renderer renderer) {
         // тест кейс:
         // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
@@ -96,6 +97,60 @@ public class DirectoryScrollPane {
             );
             tryToConnectToFtp(ftpPath, renderer);
         };
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        FTPClient ftp = new FTPClient();
+        FTPClientConfig config = new FTPClientConfig();
+//        config.setXXX(YYY); // change required options
+        // for example config.setServerTimeZoneId("Pacific/Pitcairn")
+        ftp.configure(config);
+        boolean error = false;
+        try {
+            int reply;
+            String server = "ftp.bmc.com";
+            ftp.connect(server);
+            System.out.println("Connected to " + server + ".");
+            System.out.print(ftp.getReplyString());
+
+            // After connection attempt, you should check the reply code to verify
+            // success.
+            reply = ftp.getReplyCode();
+
+            if(!FTPReply.isPositiveCompletion(reply)) {
+                ftp.disconnect();
+                System.err.println("FTP server refused connection.");
+                System.exit(1);
+            }
+         // transfer files
+            ftp.logout();
+        } catch(IOException e) {
+            error = true;
+            e.printStackTrace();
+        } finally {
+            if(ftp.isConnected()) {
+                try {
+                    ftp.disconnect();
+                } catch(IOException ioe) {
+                    // do nothing
+                }
+            }
+            System.exit(error ? 1 : 0);
+        }
+
+        FTPClient f = new FTPClient();
+        String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
+        f.connect(server);
+        f.login("anonymous", "");
+        String directory = "/";
+        FTPListParseEngine engine = f.initiateListParsing(directory);
+        while (engine.hasNext()) {
+            FTPFile[] files = engine.getNext(25);  // "page size" you want
+            //do whatever you want with these files, display them, etc.
+            //expensive FTPFile objects not created until needed.
+            System.out.println(files);
+        }
     }
 
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
@@ -158,10 +213,6 @@ public class DirectoryScrollPane {
             }
         }
         return null;
-    }
-
-    public JPanel getMainDirectoryPane() {
-        return mainDirectoryPane;
     }
 
     public JScrollPane getScrollPane() {
