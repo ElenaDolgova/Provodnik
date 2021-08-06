@@ -3,6 +3,7 @@
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -18,24 +19,34 @@ public class LocalDirectory implements Directory {
         this.path = path;
     }
 
-    @Override
-    public Collection<Link> getFiles() {
-        return downloadFiles(null);
-    }
+//    @Override
+//    public Collection<Link> getFiles() {
+//        return downloadFiles(null);
+//    }
+
+//    @Override
+//    public Collection<Link> getFiles(String ext) {
+//        return downloadFiles(ext);
+//    }
 
     @Override
-    public Collection<Link> getFiles(String ext) {
-        return downloadFiles(ext);
-    }
-
-    private Collection<Link> downloadFiles(String ext) {
-        return Directory.walkFiles(path, 1)
+    public void getFiles(Consumer<Link> action, String ext) {
+        Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
                 .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
                 .map(this::getLink)
                 .sorted()
-                .collect(Collectors.toList());
+                .forEach(action);
     }
+
+//    private Collection<Link> downloadFiles(String ext) {
+//        return Directory.walkFiles(path, 1)
+//                .filter(p -> p.getNameCount() == path.getNameCount() + 1)
+//                .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
+//                .map(this::getLink)
+//                .sorted()
+//                .collect(Collectors.toList());
+//    }
 
     private Link getLink(Path path) {
         try {

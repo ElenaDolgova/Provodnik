@@ -1,68 +1,53 @@
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.*;
-import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPListParseEngine;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.util.function.Consumer;
 
 public class FTPDirectory implements Directory {
-
-    private final FileObject fileObject;
+    private final FTPClient ftpClient;
+    private final String path;
+    private final String name;
 
     //https://www.mmnt.net/
-    public FTPDirectory(FileObject fileObject) {
-        this.fileObject = fileObject;
+    public FTPDirectory(FTPClient ftpClient, String path, String name) {
+        this.ftpClient = ftpClient;
+        this.path = path;
+        this.name = name;
     }
 
     @Override
-    public Collection<Link> getFiles() {
-        return downloadFiles(null);
-    }
-
-    @Override
-    public Collection<Link> getFiles(String ext) {
-        return downloadFiles(ext);
-    }
-
-    private Collection<Link> downloadFiles(String ext) {
+    public void getFiles(Consumer<Link> action, String ext) {
         try {
-            return Arrays.stream(fileObject.getChildren())
-                    .filter(p -> {
-                        try {
-                            if (ext == null || StringUtils.isBlank(ext)) return true;
-                            String contentEncoding = p.getContent().getFile().getName().getExtension();
-                            return ext.equals(contentEncoding);
-                        } catch (FileSystemException e) {
-                            e.printStackTrace();
-                        }
-                        return false;
-                    })
-                    .map(FtpFileLink::new)
-                    .sorted()
-                    .collect(Collectors.toList());
-        } catch (FileSystemException e) {
+            FTPListParseEngine engine = ftpClient.initiateListParsing(path);
+            while (engine.hasNext()) {
+                FTPFile[] files = engine.getNext(25);
+                for (FTPFile file : files) {
+                    if (ext == null || StringUtils.isBlank(ext)) {
+                        action.accept(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
+                        continue;
+                    }
+                    boolean hasSuitableExtension;
+                    if (ext.contains(".")) {
+                        hasSuitableExtension = file.getName().endsWith(ext);
+                    } else {
+                        hasSuitableExtension = file.getName().endsWith("." + ext);
+                    }
+                    if (hasSuitableExtension) {
+                        action.accept(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
+                    }
+                }
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return Collections.emptyList();
     }
 
     @Override
     public String getDirectoryName() {
-        try {
-            FileName name = fileObject.getContent().getFile().getName();
-            String baseName = name.getBaseName();
-            if (baseName.isBlank()) {
-                return name.toString();
-            } else {
-                return baseName;
-            }
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return name;
     }
 
     @Override

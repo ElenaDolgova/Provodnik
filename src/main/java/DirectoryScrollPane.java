@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.file.FileSystem;
 
 public class DirectoryScrollPane {
@@ -104,28 +105,32 @@ public class DirectoryScrollPane {
         String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
         f.connect(server);
         f.login("anonymous", "");
-        String directory = "/";
-        FTPListParseEngine engine = f.initiateListParsing(directory);
-        System.out.println("I am here");
+        FTPListParseEngine engine = f.initiateListParsing("/");
+
         while (engine.hasNext()) {
             FTPFile[] files = engine.getNext(25);  // "page size" you want
             //do whatever you want with these files, display them, etc.
             //expensive FTPFile objects not created until needed.
-            System.out.println("lol");
             for (FTPFile file : files) {
                 System.out.println(file);
             }
-//            System.out.println(files);
         }
     }
 
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
         try {
             if (StringUtils.isNotBlank(ftpPath)) {
+                FTPClient f = new FTPClient();
+                String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
+                f.connect(server);
+                f.login("anonymous", "");
+//                FTPListParseEngine engine = f.initiateListParsing("/");
+
                 renderer.clearFileScrollPane();
                 PreviewPanel.hideContent();
-                FileObject fileObject = VFS.getManager().resolveFile(ftpPath, new FileSystemOptions());
-                FTPDirectory directory = new FTPDirectory(fileObject);
+//                FileObject fileObject = VFS.getManager().resolveFile(ftpPath, new FileSystemOptions());
+
+                FTPDirectory directory = new FTPDirectory(f, "/", "/");
                 getClearedDirectory().addElement(directory);
                 renderer.updateFilesScrollPane(directory);
                 connectToFtpButton.setText("Disconnect");
@@ -139,6 +144,8 @@ public class DirectoryScrollPane {
             );
             tryToConnectToFtp(ftpPathNew, renderer);
             p.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

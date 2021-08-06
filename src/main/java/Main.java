@@ -21,8 +21,8 @@ public class Main {
         final PreviewPanel PREVIEW_PANEL = new PreviewPanel();
 
         Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
-        DIRECTORY_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         FILES_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
+        DIRECTORY_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         PREVIEW_PANEL.init(GLOBAL_FRAME);
 
         GLOBAL_FRAME.pack();

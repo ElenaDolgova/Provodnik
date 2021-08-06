@@ -1,64 +1,65 @@
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FtpFileLink implements Link {
-    private final FileObject fileObject;
+    private final FTPClient ftpClient;
+    private final FTPFile ftpFile;
+    private final String path;
 
-    public FtpFileLink(FileObject fileObject) {
-        this.fileObject = fileObject;
+    public FtpFileLink(FTPClient ftpClient, String path, FTPFile ftpFile) {
+        this.ftpClient = ftpClient;
+        this.path = path;
+        this.ftpFile = ftpFile;
     }
 
     @Override
     public Path getPath() {
-        try {
-            return fileObject.getContent().getFile().getPath();
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return Paths.get(path);
     }
 
     @Override
     public Directory createDirectory() {
-        return new FTPDirectory(fileObject);
+        return new FTPDirectory(ftpClient, path, getName());
     }
 
     @Override
     public boolean isDirectory() {
-        try {
-            return fileObject.isFolder();
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return ftpFile.isDirectory();
     }
 
     @Override
     public String getName() {
-        try {
-            return fileObject.getContent().getFile().getName().getBaseName();
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-        return "qwerty";
+        return ftpFile.getName();
     }
 
     @Override
-    public InputStream getInputStreamOfFile() throws FileSystemException {
-        return fileObject.getContent().getInputStream();
+    public InputStream getInputStreamOfFile() {
+        try {
+            return ftpClient.retrieveFileStream(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public String getProbeContentType() {
-        try {
-            return fileObject.getContent().getContentInfo().getContentType();
-        } catch (FileSystemException e) {
-            e.printStackTrace();
+        return Link.getProbeContentType(Paths.get(path));
+    }
+
+    public static String getFtpPath(String path, String name) {
+        String newPath;
+        if (path.equals("/")) {
+            newPath = path + name;
+        } else {
+            newPath = path + "/" + name;
         }
-        return null;
+        return newPath;
     }
 
     @Override

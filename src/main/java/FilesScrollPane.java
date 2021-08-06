@@ -1,27 +1,46 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 
 public class FilesScrollPane {
     private final JPanel mainFileScrollPane;
     private final JScrollPane jScrollPane;
     private final JTextField textField;
+    private final ImageIcon folderIcon;
 
     public FilesScrollPane() {
         JScrollPane scrollPane = new JScrollPane();
-//        scrollPane.setBounds(Dimensions.DIRECTORY_SCROLL_PANE_WIDTH + 3, 1, Dimensions.FILE_SCROLL_PANE_WIDTH, Dimensions.FILE_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainFileScrollPane = new JPanel(new BorderLayout());
         this.textField = new JTextField();
         this.mainFileScrollPane.add(jScrollPane, BorderLayout.CENTER);
         this.mainFileScrollPane.add(textField, BorderLayout.NORTH);
+
+        File folderImage = new File("src/main/resources/folder.png");
+        ImageIcon folderIcon = null;
+        try {
+            Image image = ImageIO.read(folderImage);
+            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.folderIcon = folderIcon;
     }
 
     public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
         this.textField.addActionListener(getTextFiledListener(renderer));
         GLOBAL_FRAME.getContentPane().add(mainFileScrollPane, BorderLayout.CENTER);
+
+
+        DefaultListModel<Link> defaultListModel = new DefaultListModel<>();
+        JList<Link> displayFiles = new JList<>(defaultListModel);
+        displayFiles.setCellRenderer(new FileListCellRenderer());
+        jScrollPane.setViewportView(displayFiles);
+        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(renderer));
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -62,5 +81,47 @@ public class FilesScrollPane {
 
     public JScrollPane getScrollPane() {
         return jScrollPane;
+    }
+
+    private class FileListCellRenderer extends DefaultListCellRenderer {
+
+        private static final long serialVersionUID = -7799441088157759804L;
+        private final JLabel label;
+        private final Color textSelectionColor = Color.BLACK;
+        private final Color backgroundSelectionColor = Color.lightGray;
+        private final Color textNonSelectionColor = Color.BLACK;
+        private final Color backgroundNonSelectionColor = Color.WHITE;
+
+        FileListCellRenderer() {
+            label = new JLabel();
+            label.setOpaque(true);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(
+                JList list,
+                Object value,
+                int index,
+                boolean selected,
+                boolean expanded) {
+
+            Link file = (Link) value;
+            if (((Link) value).isDirectory()) {
+                label.setIcon(folderIcon);
+            } else {
+                label.setIcon(UIManager.getIcon("FileView.fileIcon"));
+            }
+            label.setText(file.getName());
+
+            if (selected) {
+                label.setBackground(backgroundSelectionColor);
+                label.setForeground(textSelectionColor);
+            } else {
+                label.setBackground(backgroundNonSelectionColor);
+                label.setForeground(textNonSelectionColor);
+            }
+
+            return label;
+        }
     }
 }

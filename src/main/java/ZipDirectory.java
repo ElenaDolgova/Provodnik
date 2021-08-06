@@ -1,8 +1,5 @@
-//import org.apache.commons.lang3.StringUtils;
-
 import java.nio.file.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 public class ZipDirectory implements Directory {
     private final FileSystem fs;
@@ -16,20 +13,11 @@ public class ZipDirectory implements Directory {
     }
 
     @Override
-    public Collection<Link> getFiles() {
-        return downloadFiles(null);
-    }
-
-    @Override
-    public Collection<Link> getFiles(String ext) {
-        return downloadFiles(ext);
-    }
-
-    private Collection<Link> downloadFiles(String ext) {
+    public void getFiles(Consumer<Link> action, String ext) {
         if ("application/zip".equals(probeContentType)) {
-            return Directory.streamAllFiles(fs, 2)
+            Directory.streamAllFiles(fs, 2)
                     .filter(p -> {
-                        if (ext == null || ext.length() ==0) return true;
+                        if (ext == null || ext.length() == 0) return true;
                         return ext.equals(Directory.getExtension(p));
                     })
                     .filter(p -> {
@@ -39,15 +27,15 @@ public class ZipDirectory implements Directory {
                     })
                     .map(path -> new ZipFileLink(path, fs, false))
                     .sorted()
-                    .collect(Collectors.toList());
+                    .forEach(action);
         }
         int depth = path.getNameCount() + 1;
-        return Directory.streamAllFiles(fs, depth)
+        Directory.streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
-                .filter(p -> ext == null || ext.length() ==0 || p.endsWith(ext))
+                .filter(p -> ext == null || ext.length() == 0 || p.endsWith(ext))
                 .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileLink(path, fs, false))
-                .collect(Collectors.toList());
+                .forEach(action);
     }
 
     @Override
