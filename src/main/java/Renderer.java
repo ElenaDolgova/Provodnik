@@ -1,9 +1,15 @@
 import javax.swing.*;
 import java.io.IOException;
+import java.util.List;
 
 public class Renderer {
     private final DirectoryScrollPane directoryScrollPane;
     private final FilesScrollPane filesScrollPane;
+
+    public PreviewPanel getPreviewPanel() {
+        return previewPanel;
+    }
+
     private final PreviewPanel previewPanel;
 
     public Renderer(DirectoryScrollPane directoryScrollPane,
@@ -49,35 +55,35 @@ public class Renderer {
         DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
         Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
         getDirectoryFiles(sourceModel, lastDirectory, ext);
-
-//        JList<Link> displayFiles = getDirectoryFiles(lastDirectory, ext);
-//        filesScrollPane.getScrollPane().setViewportView(displayFiles);
-//        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
     }
 
     /**
      * Метод возвращает список файлов текущей директории
      */
     private void getDirectoryFiles(DefaultListModel<Link> list, Directory directory, String ext) {
-        list.removeAllElements();
-        directory.getFiles(list::addElement, ext);
+        SwingUtilities.invokeLater(() -> setThrobberVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            list.clear();
+            new SwingWorker<Void, Link>() {
+                @Override
+                protected Void doInBackground() {
+                    directory.getFiles(this::publish, ext);
+                    return null;
+                }
+
+                @Override
+                protected void process(List<Link> chunks) {
+                    list.addAll(chunks);
+                }
+
+                @Override
+                protected void done() {
+                    SwingUtilities.invokeLater(() -> setThrobberVisible(false));
+                }
+            }.execute();
+        });
     }
 
-    /**
-     * Метод возвращает список файлов текущей директории c фильтрацией по ext
-     */
-//    private JList<Link> getDirectoryFiles(Directory directory, String ext) {
-//        Collection<Link> files = directory.getFiles(ext);
-//        return mapToJList(files);
-//    }
-//
-//    private JList<Link> mapToJList(Collection<Link> files) {
-//        DefaultListModel<Link> labelJList = new DefaultListModel<>();
-//        files.forEach(labelJList::addElement);
-//        var jlist = new JList<>(labelJList);
-//        jlist.setCellRenderer(new FileListCellRenderer());
-//        return jlist;
-//    }
     public void clearFileScrollPane() {
         JList<Link> links = (JList<Link>) this.filesScrollPane.getScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
@@ -93,7 +99,7 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Link displayFiles) {
         try {
-            previewPanel.update(probeContentType, displayFiles.getInputStreamOfFile());
+            displayFiles.processFile(it -> previewPanel.update(probeContentType, it));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,5 +108,9 @@ public class Renderer {
     private static <T> DefaultListModel<T> getModel(JScrollPane scrollPane) {
         JList<T> displayDirectory = (JList<T>) scrollPane.getViewport().getView();
         return (DefaultListModel<T>) displayDirectory.getModel();
+    }
+
+    public void setThrobberVisible(boolean visible) {
+        filesScrollPane.getSpinner().setVisible(visible);
     }
 }

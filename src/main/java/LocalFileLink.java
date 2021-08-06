@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 public class LocalFileLink implements Link {
 
@@ -21,9 +22,9 @@ public class LocalFileLink implements Link {
     }
 
     @Override
-    public InputStream getInputStreamOfFile() throws IOException {
+    public void processFile(Consumer<InputStream> consumer) throws IOException {
         byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        return new ByteArrayInputStream(bytes);
+        consumer.accept(new ByteArrayInputStream(bytes));
     }
 
     @Override

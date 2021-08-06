@@ -5,7 +5,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.function.Consumer;
 
 public class ZipFileLink implements Link {
     private final Path path;
@@ -29,9 +29,9 @@ public class ZipFileLink implements Link {
     }
 
     @Override
-    public InputStream getInputStreamOfFile() throws IOException {
+    public void processFile(Consumer<InputStream> consumer) throws IOException {
         byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        return new ByteArrayInputStream(bytes);
+        consumer.accept(new ByteArrayInputStream(bytes));
     }
 
     @Override

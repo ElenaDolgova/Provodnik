@@ -8,7 +8,9 @@ import java.io.IOException;
 public class FilesScrollPane {
     private final JPanel mainFileScrollPane;
     private final JScrollPane jScrollPane;
+    private final JPanel northPanel;
     private final JTextField textField;
+    private final JLabel spinner;
     private final ImageIcon folderIcon;
 
     public FilesScrollPane() {
@@ -16,9 +18,21 @@ public class FilesScrollPane {
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainFileScrollPane = new JPanel(new BorderLayout());
+        this.northPanel = new JPanel(new BorderLayout());
+
         this.textField = new JTextField();
+        this.spinner = new JLabel(
+                new ImageIcon(
+                        new ImageIcon("src/main/resources/loading.gif")
+                                .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
+                )
+        );
+        spinner.setVisible(false);
+        this.northPanel.add(this.spinner, BorderLayout.EAST);
+        this.northPanel.add(this.textField, BorderLayout.CENTER);
+
         this.mainFileScrollPane.add(jScrollPane, BorderLayout.CENTER);
-        this.mainFileScrollPane.add(textField, BorderLayout.NORTH);
+        this.mainFileScrollPane.add(northPanel, BorderLayout.NORTH);
 
         File folderImage = new File("src/main/resources/folder.png");
         ImageIcon folderIcon = null;
@@ -34,7 +48,6 @@ public class FilesScrollPane {
     public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
         this.textField.addActionListener(getTextFiledListener(renderer));
         GLOBAL_FRAME.getContentPane().add(mainFileScrollPane, BorderLayout.CENTER);
-
 
         DefaultListModel<Link> defaultListModel = new DefaultListModel<>();
         JList<Link> displayFiles = new JList<>(defaultListModel);
@@ -123,5 +136,9 @@ public class FilesScrollPane {
 
             return label;
         }
+    }
+
+    public JLabel getSpinner() {
+        return spinner;
     }
 }

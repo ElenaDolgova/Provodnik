@@ -1,9 +1,6 @@
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.*;
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.VFS;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -11,7 +8,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketException;
 import java.nio.file.FileSystem;
 
 public class DirectoryScrollPane {
@@ -34,7 +30,6 @@ public class DirectoryScrollPane {
             e.printStackTrace();
         }
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
-//        scrollPane.setBounds(1, 1, Dimensions.DIRECTORY_SCROLL_PANE_WIDTH, Dimensions.DIRECTORY_SCROLL_PANE_HEIGHT);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainDirectoryPane = new JPanel(new BorderLayout());
@@ -96,40 +91,34 @@ public class DirectoryScrollPane {
                     "Введите данные подключения к ftp серверу",
                     JOptionPane.QUESTION_MESSAGE
             );
-            tryToConnectToFtp(ftpPath, renderer);
+            SwingUtilities.invokeLater(() -> {
+                renderer.setThrobberVisible(true);
+                new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() {
+                        tryToConnectToFtp(ftpPath, renderer);
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
+                    }
+                }.execute();
+            });
         };
-    }
-
-    public static void main(String[] args) throws IOException {
-        FTPClient f = new FTPClient();
-        String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
-        f.connect(server);
-        f.login("anonymous", "");
-        FTPListParseEngine engine = f.initiateListParsing("/");
-
-        while (engine.hasNext()) {
-            FTPFile[] files = engine.getNext(25);  // "page size" you want
-            //do whatever you want with these files, display them, etc.
-            //expensive FTPFile objects not created until needed.
-            for (FTPFile file : files) {
-                System.out.println(file);
-            }
-        }
     }
 
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
         try {
             if (StringUtils.isNotBlank(ftpPath)) {
+
                 FTPClient f = new FTPClient();
                 String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
                 f.connect(server);
                 f.login("anonymous", "");
-//                FTPListParseEngine engine = f.initiateListParsing("/");
-
                 renderer.clearFileScrollPane();
                 PreviewPanel.hideContent();
-//                FileObject fileObject = VFS.getManager().resolveFile(ftpPath, new FileSystemOptions());
-
                 FTPDirectory directory = new FTPDirectory(f, "/", "/");
                 getClearedDirectory().addElement(directory);
                 renderer.updateFilesScrollPane(directory);

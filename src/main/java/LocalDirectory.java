@@ -1,10 +1,8 @@
-//import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
@@ -19,34 +17,15 @@ public class LocalDirectory implements Directory {
         this.path = path;
     }
 
-//    @Override
-//    public Collection<Link> getFiles() {
-//        return downloadFiles(null);
-//    }
-
-//    @Override
-//    public Collection<Link> getFiles(String ext) {
-//        return downloadFiles(ext);
-//    }
-
     @Override
     public void getFiles(Consumer<Link> action, String ext) {
         Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
-                .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
+                .filter(p -> ext == null || StringUtils.isBlank(ext) || ext.equals(Directory.getExtension(p)))
                 .map(this::getLink)
                 .sorted()
                 .forEach(action);
     }
-
-//    private Collection<Link> downloadFiles(String ext) {
-//        return Directory.walkFiles(path, 1)
-//                .filter(p -> p.getNameCount() == path.getNameCount() + 1)
-//                .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
-//                .map(this::getLink)
-//                .sorted()
-//                .collect(Collectors.toList());
-//    }
 
     private Link getLink(Path path) {
         try {

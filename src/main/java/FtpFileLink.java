@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 public class FtpFileLink implements Link {
     private final FTPClient ftpClient;
@@ -38,13 +39,18 @@ public class FtpFileLink implements Link {
     }
 
     @Override
-    public InputStream getInputStreamOfFile() {
-        try {
-            return ftpClient.retrieveFileStream(path);
+    public void processFile(Consumer<InputStream> consumer) {
+        try (InputStream in = ftpClient.retrieveFileStream(path)) {
+            consumer.accept(in);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                ftpClient.completePendingCommand();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return null;
     }
 
     @Override

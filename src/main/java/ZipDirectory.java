@@ -1,3 +1,5 @@
+import org.apache.commons.lang3.StringUtils;
+
 import java.nio.file.*;
 import java.util.function.Consumer;
 
@@ -17,7 +19,7 @@ public class ZipDirectory implements Directory {
         if ("application/zip".equals(probeContentType)) {
             Directory.streamAllFiles(fs, 2)
                     .filter(p -> {
-                        if (ext == null || ext.length() == 0) return true;
+                        if (ext == null || StringUtils.isBlank(ext)) return true;
                         return ext.equals(Directory.getExtension(p));
                     })
                     .filter(p -> {
