@@ -40,7 +40,7 @@ public class LocalDirectory implements Directory {
     private Link getLink(Path path) {
         try {
             if ("application/zip".equals(Link.getProbeContentType(path))) {
-                FileSystem fs = FileSystems.newFileSystem(path, Collections.emptyMap());
+                FileSystem fs = FileSystems.newFileSystem(path, null);
                 return new ZipFileLink(path, fs, true);
             }
         } catch (IOException e) {

@@ -100,56 +100,22 @@ public class DirectoryScrollPane {
     }
 
     public static void main(String[] args) throws IOException {
-
-        FTPClient ftp = new FTPClient();
-        FTPClientConfig config = new FTPClientConfig();
-//        config.setXXX(YYY); // change required options
-        // for example config.setServerTimeZoneId("Pacific/Pitcairn")
-        ftp.configure(config);
-        boolean error = false;
-        try {
-            int reply;
-            String server = "ftp.bmc.com";
-            ftp.connect(server);
-            System.out.println("Connected to " + server + ".");
-            System.out.print(ftp.getReplyString());
-
-            // After connection attempt, you should check the reply code to verify
-            // success.
-            reply = ftp.getReplyCode();
-
-            if(!FTPReply.isPositiveCompletion(reply)) {
-                ftp.disconnect();
-                System.err.println("FTP server refused connection.");
-                System.exit(1);
-            }
-         // transfer files
-            ftp.logout();
-        } catch(IOException e) {
-            error = true;
-            e.printStackTrace();
-        } finally {
-            if(ftp.isConnected()) {
-                try {
-                    ftp.disconnect();
-                } catch(IOException ioe) {
-                    // do nothing
-                }
-            }
-            System.exit(error ? 1 : 0);
-        }
-
         FTPClient f = new FTPClient();
         String server = "ftp.bmc.com"; // ftp://anonymous@ftp.bmc.com
         f.connect(server);
         f.login("anonymous", "");
         String directory = "/";
         FTPListParseEngine engine = f.initiateListParsing(directory);
+        System.out.println("I am here");
         while (engine.hasNext()) {
             FTPFile[] files = engine.getNext(25);  // "page size" you want
             //do whatever you want with these files, display them, etc.
             //expensive FTPFile objects not created until needed.
-            System.out.println(files);
+            System.out.println("lol");
+            for (FTPFile file : files) {
+                System.out.println(file);
+            }
+//            System.out.println(files);
         }
     }
 

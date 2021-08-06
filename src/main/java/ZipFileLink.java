@@ -41,12 +41,12 @@ public class ZipFileLink implements Link {
             if (isFirstZip) {
                 // создается просто самый первый zip
                 FileSystem newFileSystem =
-                        FileSystems.newFileSystem(path, Collections.emptyMap());
+                        FileSystems.newFileSystem(path, null);
                 return new ZipDirectory(this, newFileSystem);
             } else {
                 //  zip внутри zip Создается новая файловая подсистема
                 FileSystem newFileSystem =
-                        FileSystems.newFileSystem(fs.getPath(path.toString()), Collections.emptyMap());
+                        FileSystems.newFileSystem(fs.getPath(path.toString()), null);
                 return new ZipDirectory(this, newFileSystem);
             }
         }

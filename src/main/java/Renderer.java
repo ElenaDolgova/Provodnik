@@ -3,7 +3,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
 import java.util.Collection;
 
 public class Renderer {
@@ -76,7 +75,6 @@ public class Renderer {
 
     private class FileListCellRenderer extends DefaultListCellRenderer {
 
-        @Serial
         private static final long serialVersionUID = -7799441088157759804L;
         private final JLabel label;
         private final Color textSelectionColor = Color.BLACK;
