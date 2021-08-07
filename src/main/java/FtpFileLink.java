@@ -1,4 +1,3 @@
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -37,7 +36,6 @@ public class FtpFileLink implements Link {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(file);
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
                 return new ZipDirectory(this, file.toPath(), newFileSystem);
             } catch (IOException e) {
@@ -45,6 +43,16 @@ public class FtpFileLink implements Link {
             }
         }
         return new FTPDirectory(ftpClient, path, getName());
+    }
+
+    public void downloadFile(OutputStream os) {
+        try {
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE, FTP.BINARY_FILE_TYPE);
+            ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            ftpClient.retrieveFile(path, os);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
@@ -56,17 +64,6 @@ public class FtpFileLink implements Link {
     public String getName() {
         //todo кодировка на кириллицу
         return ftpFile.getName();
-    }
-
-    @Override
-    public void downloadFile(OutputStream os) {
-        try {
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE, FTP.BINARY_FILE_TYPE);
-            ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-            ftpClient.retrieveFile(path, os);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     @Override

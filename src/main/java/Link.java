@@ -16,8 +16,6 @@ public interface Link extends Comparable<Link> {
 
     void processFile(Consumer<InputStream> consumer) throws IOException;
 
-    default void downloadFile(OutputStream os) {}
-
     default String getProbeContentType() {
         return getProbeContentType(getPath());
     }
