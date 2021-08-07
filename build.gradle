@@ -27,6 +27,12 @@ jar {
     }
 }
 
+processResources {
+    into("img") {
+        from("$rootDir/img")
+    }
+}
+
 test {
     useJUnitPlatform()
 }
