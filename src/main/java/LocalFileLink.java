@@ -4,8 +4,17 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
-public record LocalFileLink(FileSystem fs, Path path) implements Link {
+public class LocalFileLink implements Link {
+
+    private final FileSystem fs;
+    private final Path path;
+
+    public LocalFileLink(FileSystem fs, Path path) {
+        this.fs = fs;
+        this.path = path;
+    }
 
     @Override
     public Directory createDirectory() {
@@ -13,9 +22,9 @@ public record LocalFileLink(FileSystem fs, Path path) implements Link {
     }
 
     @Override
-    public InputStream getInputStreamOfFile() throws IOException {
+    public void processFile(Consumer<InputStream> consumer) throws IOException {
         byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        return new ByteArrayInputStream(bytes);
+        consumer.accept(new ByteArrayInputStream(bytes));
     }
 
     @Override

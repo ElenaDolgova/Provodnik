@@ -5,9 +5,18 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.function.Consumer;
 
-public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implements Link {
+public class ZipFileLink implements Link {
+    private final Path path;
+    private final FileSystem fs;
+    private final boolean isFirstZip;
+
+    public ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) {
+        this.path = path;
+        this.fs = fs;
+        this.isFirstZip = isFirstZip;
+    }
 
     @Override
     public Path getPath() {
@@ -20,9 +29,9 @@ public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implemen
     }
 
     @Override
-    public InputStream getInputStreamOfFile() throws IOException {
+    public void processFile(Consumer<InputStream> consumer) throws IOException {
         byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        return new ByteArrayInputStream(bytes);
+        consumer.accept(new ByteArrayInputStream(bytes));
     }
 
     @Override
@@ -32,12 +41,12 @@ public record ZipFileLink(Path path, FileSystem fs, boolean isFirstZip) implemen
             if (isFirstZip) {
                 // создается просто самый первый zip
                 FileSystem newFileSystem =
-                        FileSystems.newFileSystem(path, Collections.emptyMap());
+                        FileSystems.newFileSystem(path, null);
                 return new ZipDirectory(this, newFileSystem);
             } else {
                 //  zip внутри zip Создается новая файловая подсистема
                 FileSystem newFileSystem =
-                        FileSystems.newFileSystem(fs.getPath(path.toString()), Collections.emptyMap());
+                        FileSystems.newFileSystem(fs.getPath(path.toString()), null);
                 return new ZipDirectory(this, newFileSystem);
             }
         }

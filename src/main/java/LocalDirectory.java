@@ -2,37 +2,37 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.*;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * Класс описывает один элемент на табе с директориями {@link DirectoryScrollPane}
  */
-public record LocalDirectory(FileSystem fs, Path path) implements Directory {
+public class LocalDirectory implements Directory {
 
-    @Override
-    public Collection<Link> getFiles() {
-        return downloadFiles(null);
+    private final FileSystem fs;
+    private final Path path;
+
+    public LocalDirectory(FileSystem fs, Path path) {
+        this.fs = fs;
+        this.path = path;
     }
 
     @Override
-    public Collection<Link> getFiles(String ext) {
-        return downloadFiles(ext);
-    }
-
-    private Collection<Link> downloadFiles(String ext) {
-        return Directory.walkFiles(path, 1)
+    public void getFiles(Consumer<List<? extends Link>> action, String ext) {
+        action.accept(Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
                 .filter(p -> ext == null || StringUtils.isBlank(ext) || ext.equals(Directory.getExtension(p)))
                 .map(this::getLink)
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     private Link getLink(Path path) {
         try {
             if ("application/zip".equals(Link.getProbeContentType(path))) {
-                FileSystem fs = FileSystems.newFileSystem(path, Collections.emptyMap());
+                FileSystem fs = FileSystems.newFileSystem(path, null);
                 return new ZipFileLink(path, fs, true);
             }
         } catch (IOException e) {

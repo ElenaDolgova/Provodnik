@@ -8,6 +8,11 @@ public class PreviewPanel extends Component {
     private static final int MAX_TEXT_LINES = 20;
     private final static JPanel jPanel = new JPanel(new GridBagLayout());
     private final static JLabel image = new JLabel();
+
+    public JTextArea getTextArea() {
+        return textArea;
+    }
+
     private final static JTextArea textArea = new JTextArea(7, 40);
 
     public void init(JFrame GLOBAL_FRAME) {
@@ -30,15 +35,17 @@ public class PreviewPanel extends Component {
         textArea.setEditable(false);
     }
 
-    public void update(String probeContentType, InputStream in) {
+    public void update(String probeContentType, InputStream in, Renderer renderer) {
         if (probeContentType == null) {
             return;
         }
+        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(true));
         if (probeContentType.contains("image")) {
             updateImage(in);
         } else if (probeContentType.contains("text")) {
             updateTxt(in);
         }
+        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
     }
 
     private void updateImage(InputStream in) {
@@ -46,9 +53,8 @@ public class PreviewPanel extends Component {
         try {
             ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
-            ImageIcon icon = new ImageIcon(
-                    inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST)
-            );
+            ImageIcon icon =
+                    new ImageIcon(inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST));
             image.setIcon(icon);
             textArea.setVisible(false);
             image.setVisible(true);
@@ -61,7 +67,6 @@ public class PreviewPanel extends Component {
         image.setVisible(false);
         textArea.setVisible(true);
         try {
-            // todo мне не нравится такое чтение по частям
             try (InputStreamReader inputStreamReader = new InputStreamReader(in);
                  BufferedReader input = new BufferedReader(inputStreamReader)) {
                 String str = input.lines()

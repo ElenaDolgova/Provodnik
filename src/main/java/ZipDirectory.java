@@ -1,7 +1,8 @@
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.*;
-import java.util.*;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ZipDirectory implements Directory {
@@ -16,18 +17,9 @@ public class ZipDirectory implements Directory {
     }
 
     @Override
-    public Collection<Link> getFiles() {
-        return downloadFiles(null);
-    }
-
-    @Override
-    public Collection<Link> getFiles(String ext) {
-        return downloadFiles(ext);
-    }
-
-    private Collection<Link> downloadFiles(String ext) {
+    public void getFiles(Consumer<List<? extends Link>> action, String ext) {
         if ("application/zip".equals(probeContentType)) {
-            return Directory.streamAllFiles(fs, 2)
+            action.accept(Directory.streamAllFiles(fs, 2)
                     .filter(p -> {
                         if (ext == null || StringUtils.isBlank(ext)) return true;
                         return ext.equals(Directory.getExtension(p));
@@ -39,15 +31,15 @@ public class ZipDirectory implements Directory {
                     })
                     .map(path -> new ZipFileLink(path, fs, false))
                     .sorted()
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         }
         int depth = path.getNameCount() + 1;
-        return Directory.streamAllFiles(fs, depth)
+        action.accept(Directory.streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
-                .filter(p -> ext == null || StringUtils.isNotBlank(ext) || p.endsWith(ext))
+                .filter(p -> ext == null || ext.length() == 0 || p.endsWith(ext))
                 .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileLink(path, fs, false))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     @Override

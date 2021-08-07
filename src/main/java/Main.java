@@ -12,22 +12,18 @@ public class Main {
 
     private void init() {
         final JFrame GLOBAL_FRAME = new JFrame("Vitamin Well");
+        GLOBAL_FRAME.setLayout(new BorderLayout());
+        GLOBAL_FRAME.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        GLOBAL_FRAME.setPreferredSize(new Dimension(Dimensions.MAIN_WIDTH, Dimensions.MAIN_HEIGHT));
 
         final DirectoryScrollPane DIRECTORY_SCROLL_PANE = new DirectoryScrollPane();
         final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
         final PreviewPanel PREVIEW_PANEL = new PreviewPanel();
 
-        GLOBAL_FRAME.setLayout(new BorderLayout());
-        GLOBAL_FRAME.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        GLOBAL_FRAME.setPreferredSize(new Dimension(Dimensions.MAIN_WIDTH, Dimensions.MAIN_HEIGHT));
-        GLOBAL_FRAME.getContentPane().add(DIRECTORY_SCROLL_PANE.getMainDirectoryPane(), BorderLayout.WEST);
-        GLOBAL_FRAME.getContentPane().add(FILES_SCROLL_PANE.getMainFileScrollPane(), BorderLayout.CENTER);
-        PREVIEW_PANEL.init(GLOBAL_FRAME);
-
         Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
-
-        DIRECTORY_SCROLL_PANE.init(renderer);
-        FILES_SCROLL_PANE.init(renderer);
+        FILES_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
+        DIRECTORY_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
+        PREVIEW_PANEL.init(GLOBAL_FRAME);
 
         GLOBAL_FRAME.pack();
         GLOBAL_FRAME.setVisible(true);

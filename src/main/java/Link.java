@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 public interface Link extends Comparable<Link> {
     Path getPath();
@@ -12,7 +13,7 @@ public interface Link extends Comparable<Link> {
 
     Directory createDirectory() throws IOException;
 
-    InputStream getInputStreamOfFile() throws IOException;
+    void processFile(Consumer<InputStream> consumer) throws IOException;
 
     default String getProbeContentType() {
         return getProbeContentType(getPath());

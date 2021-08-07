@@ -1,15 +1,15 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
-import java.util.Collection;
+import java.util.List;
 
 public class Renderer {
-    private final ImageIcon folderIcon;
     private final DirectoryScrollPane directoryScrollPane;
     private final FilesScrollPane filesScrollPane;
+
+    public PreviewPanel getPreviewPanel() {
+        return previewPanel;
+    }
+
     private final PreviewPanel previewPanel;
 
     public Renderer(DirectoryScrollPane directoryScrollPane,
@@ -18,95 +18,6 @@ public class Renderer {
         this.directoryScrollPane = directoryScrollPane;
         this.filesScrollPane = filesScrollPane;
         this.previewPanel = previewPanel;
-        File folderImage = new File("src/main/resources/folder.png");
-        ImageIcon folderIcon = null;
-        try {
-            Image image = ImageIO.read(folderImage);
-            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.folderIcon = folderIcon;
-    }
-
-    public void updateFilesScrollPane(Directory directory) {
-        JList<Link> displayFiles = getDirectoryFiles(directory);
-        filesScrollPane.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
-    }
-
-    public void updateFilesScrollPane(String ext) {
-        Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
-        JList<Link> displayFiles = getDirectoryFiles(lastDirectory, ext);
-        filesScrollPane.getScrollPane().setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(this));
-    }
-
-    /**
-     * Метод возвращает список файлов текущей директории
-     */
-    private JList<Link> getDirectoryFiles(Directory directory) {
-        Collection<Link> files = directory.getFiles();
-        return mapToJList(files);
-    }
-
-    /**
-     * Метод возвращает список файлов текущей директории c фильтрацией по ext
-     */
-    private JList<Link> getDirectoryFiles(Directory directory, String ext) {
-        Collection<Link> files = directory.getFiles(ext);
-        return mapToJList(files);
-    }
-
-    private JList<Link> mapToJList(Collection<Link> files) {
-        DefaultListModel<Link> labelJList = new DefaultListModel<>();
-        files.forEach(labelJList::addElement);
-        var jlist = new JList<>(labelJList);
-        jlist.setCellRenderer(new FileListCellRenderer());
-        return jlist;
-    }
-
-    private class FileListCellRenderer extends DefaultListCellRenderer {
-
-        @Serial
-        private static final long serialVersionUID = -7799441088157759804L;
-        private final JLabel label;
-        private final Color textSelectionColor = Color.BLACK;
-        private final Color backgroundSelectionColor = Color.lightGray;
-        private final Color textNonSelectionColor = Color.BLACK;
-        private final Color backgroundNonSelectionColor = Color.WHITE;
-
-        FileListCellRenderer() {
-            label = new JLabel();
-            label.setOpaque(true);
-        }
-
-        @Override
-        public Component getListCellRendererComponent(
-                JList list,
-                Object value,
-                int index,
-                boolean selected,
-                boolean expanded) {
-
-            Link file = (Link) value;
-            if (((Link) value).isDirectory()) {
-                label.setIcon(folderIcon);
-            } else {
-                label.setIcon(UIManager.getIcon("FileView.fileIcon"));
-            }
-            label.setText(file.getName());
-
-            if (selected) {
-                label.setBackground(backgroundSelectionColor);
-                label.setForeground(textSelectionColor);
-            } else {
-                label.setBackground(backgroundNonSelectionColor);
-                label.setForeground(textNonSelectionColor);
-            }
-
-            return label;
-        }
     }
 
     /**
@@ -115,14 +26,62 @@ public class Renderer {
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
     public void addNewDirectory(Directory newDirectory) {
-        JList<Directory> displayDirectory = (JList<Directory>) directoryScrollPane.getScrollPane().getViewport().getView();
-        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
+        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+
         if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями
             sourceModel.addElement(newDirectory);
             // обновляем панельку с фалами
             updateFilesScrollPane(newDirectory);
         }
+    }
+
+    /**
+     * Метод обновляет файлы для текущей диретории
+     *
+     * @param directory Дирктория, файлы для которой нужно обновить
+     */
+    public void updateFilesScrollPane(Directory directory) {
+        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        getDirectoryFiles(sourceModel, directory, null);
+    }
+
+    /**
+     * Метод обнолвяет файлы самой послденей директории с учетом фильтра по расширению
+     *
+     * @param ext Расширение, по которому нужно пофильтровать файлы
+     */
+    public void updateFilesScrollPane(String ext) {
+        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
+        getDirectoryFiles(sourceModel, lastDirectory, ext);
+    }
+
+    /**
+     * Метод возвращает список файлов текущей директории
+     */
+    private void getDirectoryFiles(DefaultListModel<Link> list, Directory directory, String ext) {
+        SwingUtilities.invokeLater(() -> setThrobberVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            list.clear();
+            new SwingWorker<Void, Link>() {
+                @Override
+                protected Void doInBackground() {
+                    directory.getFiles(it -> it.forEach(this::publish), ext);
+                    return null;
+                }
+
+                @Override
+                protected void process(List<Link> chunks) {
+                    list.addAll(chunks);
+                }
+
+                @Override
+                protected void done() {
+                    SwingUtilities.invokeLater(() -> setThrobberVisible(false));
+                }
+            }.execute();
+        });
     }
 
     public void clearFileScrollPane() {
@@ -140,9 +99,18 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Link displayFiles) {
         try {
-            previewPanel.update(probeContentType, displayFiles.getInputStreamOfFile());
+            displayFiles.processFile(it -> previewPanel.update(probeContentType, it, this));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static <T> DefaultListModel<T> getModel(JScrollPane scrollPane) {
+        JList<T> displayDirectory = (JList<T>) scrollPane.getViewport().getView();
+        return (DefaultListModel<T>) displayDirectory.getModel();
+    }
+
+    public void setThrobberVisible(boolean visible) {
+        filesScrollPane.getSpinner().setVisible(visible);
     }
 }
