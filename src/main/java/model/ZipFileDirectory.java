@@ -1,5 +1,7 @@
 package model;
 
+import exception.FileProcessingException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,14 +9,20 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static model.Directory.getExtension;
+import static model.Directory.isZip;
+import static model.Directory.streamAllFiles;
 
 public class ZipFileDirectory implements Directory {
     private final Path path;
     private final FileSystem fs;
     private final boolean isFirstZip;
+    private String name;
 
     public ZipFileDirectory(Path path, FileSystem fs, boolean isFirstZip) {
         this.path = path;
@@ -22,13 +30,20 @@ public class ZipFileDirectory implements Directory {
         this.isFirstZip = isFirstZip;
     }
 
+    public ZipFileDirectory(Path path, FileSystem fs, String name, boolean isFirstZip) {
+        this.path = path;
+        this.fs = fs;
+        this.isFirstZip = isFirstZip;
+        this.name = name;
+    }
+
     @Override
     public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
         if (isZip(path)) {
-            List<ZipFileDirectory> collect = Directory.streamAllFiles(fs, 1)
+            List<ZipFileDirectory> collect = streamAllFiles(fs, 1)
                     .filter(path -> {
                         if (ext == null || ext.length() == 0) return true;
-                        return ext.equals(Directory.getExtension(path));
+                        return ext.equals(getExtension(path));
                     })
                     .filter(path -> {
                         Path parent = path.getParent();
@@ -36,12 +51,12 @@ public class ZipFileDirectory implements Directory {
                         return parent != null && !path.startsWith("/__MACOSX");
                     })
                     .map(path -> new ZipFileDirectory(path, fs, false))
-                    .sorted()
+                    .sorted(Comparator.comparing(Directory::getName))
                     .collect(Collectors.toList());
             batchAction.accept(collect);
         }
         int depth = path.getNameCount() + 1;
-        batchAction.accept(Directory.streamAllFiles(fs, depth)
+        batchAction.accept(streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
                 .filter(p -> ext == null || ext.length() == 0 || p.endsWith(ext))
                 .filter(p -> p.getNameCount() > path.getNameCount())
@@ -50,15 +65,19 @@ public class ZipFileDirectory implements Directory {
     }
 
     @Override
-    public Directory createDirectory() throws IOException {
+    public Directory createDirectory() {
         if (isZip(path)) {
             FileSystem newFileSystem;
-            if (isFirstZip) {
-                // создается просто самый первый zip
-                newFileSystem = FileSystems.newFileSystem(path, null);
-            } else {
-                //  zip внутри zip Создается новая файловая подсистема
-                newFileSystem = FileSystems.newFileSystem(fs.getPath(path.toString()), null);
+            try {
+                if (isFirstZip) {
+                    // создается просто самый первый zip
+                    newFileSystem = FileSystems.newFileSystem(path, null);
+                } else {
+                    //  zip внутри zip Создается новая файловая подсистема
+                    newFileSystem = FileSystems.newFileSystem(fs.getPath(path.toString()), null);
+                }
+            } catch (IOException e) {
+                throw new FileProcessingException("Can't create file system on zip", e);
             }
             return new ZipFileDirectory(path, newFileSystem, isFirstZip);
         }
@@ -77,30 +96,25 @@ public class ZipFileDirectory implements Directory {
     }
 
     @Override
-    public void processFile(Consumer<InputStream> consumer) throws IOException {
-        byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        consumer.accept(new ByteArrayInputStream(bytes));
+    public void processFile(Consumer<InputStream> consumer) {
+        try {
+            byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
+            consumer.accept(new ByteArrayInputStream(bytes));
+        } catch (IOException e) {
+            throw new FileProcessingException("Can't read file", e);
+        }
     }
 
     @Override
     public String getName() {
+        if (name != null) {
+            return name;
+        }
         return String.valueOf(path.getFileName());
-    }
-
-    public static boolean isZip(Path path) {
-        return "application/zip".equals(Directory.getProbeContentType(path));
     }
 
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    public int compareTo(Directory o) {
-        if (o == null) {
-            return 1;
-        }
-        return getName().compareTo(o.getName());
     }
 }

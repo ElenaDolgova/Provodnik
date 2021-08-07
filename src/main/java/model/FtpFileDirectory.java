@@ -1,5 +1,6 @@
 package model;
 
+import exception.FileProcessingException;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -16,10 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static model.ZipFileDirectory.isZip;
-
 public class FtpFileDirectory implements Directory {
-    private static final Map<String, File> cachedZipFile = new HashMap<>();
+    private static final int FTP_BATCH_SIZE = 300;
+    private static final Map<String, File> CACHED_FILES = new HashMap<>();
 
     private final FTPClient ftpClient;
     private final FTPFile ftpFile;
@@ -38,7 +38,7 @@ public class FtpFileDirectory implements Directory {
             FTPListParseEngine engine = ftpClient.initiateListParsing(path);
             while (engine.hasNext()) {
                 List<Directory> batch = new ArrayList<>();
-                FTPFile[] files = engine.getNext(300);
+                FTPFile[] files = engine.getNext(FTP_BATCH_SIZE);
                 for (FTPFile file : files) {
                     if (file != null && isSuitableForAdding(ext, file)) {
                         batch.add(new FtpFileDirectory(ftpClient, getFtpPath(file.getName()), file));
@@ -47,7 +47,7 @@ public class FtpFileDirectory implements Directory {
                 batchAction.accept(batch);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new FileProcessingException("Unable to list files on FTP server", e);
         }
     }
 
@@ -69,35 +69,37 @@ public class FtpFileDirectory implements Directory {
     }
 
     @Override
-    public Directory createDirectory() throws IOException {
-        if (isZip(getPath())) {
+    public Directory createDirectory() {
+        if (Directory.isZip(getPath())) {
             File file = getFileFromCacheOrDownload();
             try {
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
                 // тут есть фишка с null на path
-                return new ZipFileDirectory(file.toPath(), newFileSystem, true);
+                return new ZipFileDirectory(file.toPath(), newFileSystem, getName(), true);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new FileProcessingException("Unable to create Zip filesystem", e);
             }
         }
         return new FtpFileDirectory(ftpClient, path, ftpFile);
     }
 
-    private File getFileFromCacheOrDownload() throws IOException {
-        File file;
-        if (cachedZipFile.containsKey(path)) {
-            file = cachedZipFile.get(path);
-        } else {
-            file = File.createTempFile("tmp", ".zip");
-            file.deleteOnExit();
-            try (OutputStream outputStream = new FileOutputStream(file)) {
-                downloadFile(outputStream);
+    /**
+     * @return возвращает файл, который был скачан ранее и закеширован, или
+     * скачивает файл, кеширует его и возвращает обратно
+     */
+    private File getFileFromCacheOrDownload() {
+        return CACHED_FILES.computeIfAbsent(path, path -> {
+            try {
+                File file = File.createTempFile("tmp", ".zip");
+                file.deleteOnExit();
+                try (OutputStream outputStream = new FileOutputStream(file)) {
+                    downloadFile(outputStream);
+                }
+                return file;
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new FileProcessingException("Unable to download file", e);
             }
-            cachedZipFile.put(path, file);
-        }
-        return file;
+        });
     }
 
     public void downloadFile(OutputStream os) {
@@ -106,18 +108,21 @@ public class FtpFileDirectory implements Directory {
             ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             ftpClient.retrieveFile(path, os);
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new FileProcessingException("Unable to download file", e);
         }
     }
 
     @Override
     public boolean isDirectory() {
-        return ftpFile.isDirectory() || isZip(getPath());
+        return ftpFile.isDirectory() || Directory.isZip(getPath());
     }
 
     @Override
     public String getName() {
         //todo кодировка на кириллицу
+        if (ftpFile == null) {
+            return path;
+        }
         return ftpFile.getName();
     }
 
@@ -126,36 +131,27 @@ public class FtpFileDirectory implements Directory {
         try (InputStream in = ftpClient.retrieveFileStream(path)) {
             consumer.accept(in);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new FileProcessingException("Unable to download file", e);
         } finally {
             try {
                 ftpClient.completePendingCommand();
             } catch (IOException e) {
+                System.err.println("Unable to complete file download");
                 e.printStackTrace();
             }
         }
     }
 
     public String getFtpPath(String name) {
-        String newPath;
         if ("/".equals(path)) {
-            newPath = path + name;
+            return path + name;
         } else {
-            newPath = path + "/" + name;
+            return path + "/" + name;
         }
-        return newPath;
     }
 
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    public int compareTo(Directory o) {
-        if (o == null) {
-            return 1;
-        }
-        return getName().compareTo(o.getName());
     }
 }

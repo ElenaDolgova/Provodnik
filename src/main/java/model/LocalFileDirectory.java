@@ -1,5 +1,7 @@
 package model;
 
+import exception.FileProcessingException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,12 +9,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static model.ZipFileDirectory.isZip;
+import static model.Directory.isZip;
 
 public class LocalFileDirectory implements Directory {
     private final FileSystem fs;
@@ -29,7 +32,7 @@ public class LocalFileDirectory implements Directory {
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
                 .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
                 .map(this::getDirectory)
-                .sorted()
+                .sorted(Comparator.comparing(Directory::getName))
                 .collect(Collectors.toList()));
     }
 
@@ -40,7 +43,7 @@ public class LocalFileDirectory implements Directory {
                 return new ZipFileDirectory(path, fs, true);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new FileProcessingException("Unable to create local filesystem", e);
         }
         return new LocalFileDirectory(fs, path);
     }
@@ -51,9 +54,13 @@ public class LocalFileDirectory implements Directory {
     }
 
     @Override
-    public void processFile(Consumer<InputStream> consumer) throws IOException {
-        byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
-        consumer.accept(new ByteArrayInputStream(bytes));
+    public void processFile(Consumer<InputStream> consumer) {
+        try {
+            byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
+            consumer.accept(new ByteArrayInputStream(bytes));
+        } catch (IOException e) {
+            throw new FileProcessingException("Can't process file for preview", e);
+        }
     }
 
     @Override
@@ -76,15 +83,5 @@ public class LocalFileDirectory implements Directory {
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    public int compareTo(Directory o) {
-        if (o == null) {
-            return 1;
-        } else if (getName() == null) {
-            return -1;
-        }
-        return getName().compareTo(o.getName());
     }
 }

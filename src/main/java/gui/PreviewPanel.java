@@ -37,13 +37,13 @@ public class PreviewPanel extends Component {
         if (probeContentType == null) {
             return;
         }
-        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(true));
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
         if (probeContentType.contains("image")) {
             updateImage(in);
         } else if (probeContentType.contains("text")) {
             updateTxt(in);
         }
-        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
     }
 
     private void updateImage(InputStream in) {
