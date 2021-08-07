@@ -1,8 +1,11 @@
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
@@ -25,17 +28,45 @@ public class FtpFileLink implements Link {
 
     @Override
     public Directory createDirectory() {
+        if ("application/zip".equals(getProbeContentType())) {
+            try {
+                File file = File.createTempFile("tmp", ".zip");
+                file.deleteOnExit();
+                try (OutputStream outputStream = new FileOutputStream(file)) {
+                    downloadFile(outputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(file);
+                FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
+                return new ZipDirectory(this, file.toPath(), newFileSystem);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return new FTPDirectory(ftpClient, path, getName());
     }
 
     @Override
     public boolean isDirectory() {
-        return ftpFile.isDirectory();
+        return ftpFile.isDirectory() || "application/zip".equals(getProbeContentType());
     }
 
     @Override
     public String getName() {
+        //todo кодировка на кириллицу
         return ftpFile.getName();
+    }
+
+    @Override
+    public void downloadFile(OutputStream os) {
+        try {
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE, FTP.BINARY_FILE_TYPE);
+            ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            ftpClient.retrieveFile(path, os);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
