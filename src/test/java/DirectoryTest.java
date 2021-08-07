@@ -18,7 +18,7 @@ public class DirectoryTest {
 //        File file = new File(directoryTestPath + "/localDirectoryTest/folder1");
 //        Path path = Paths.get(file.getAbsolutePath());
 //        FileSystem fs = path.getFileSystem();
-//        Directory localDirectory = new LocalDirectory(fs, path);
+//        model.Directory localDirectory = new LocalDirectory(fs, path);
 //
 //        Assertions.assertEquals("folder1", localDirectory.getDirectoryName());
 //        Assertions.assertTrue(localDirectory.getFiles().isEmpty());
@@ -32,7 +32,7 @@ public class DirectoryTest {
 //        File file = new File(directoryTestPath + "/localDirectoryTest");
 //        Path path = Paths.get(file.getAbsolutePath());
 //        FileSystem fs = path.getFileSystem();
-//        Directory localDirectory = new LocalDirectory(fs, path);
+//        model.Directory localDirectory = new LocalDirectory(fs, path);
 //
 //        // Проверили наличие двух папок в директории
 //        Assertions.assertEquals("localDirectoryTest", localDirectory.getDirectoryName());
@@ -44,7 +44,7 @@ public class DirectoryTest {
 //                    Assertions.assertNull(folder.getProbeContentType());
 //                    Assertions.assertEquals(Paths.get(file.getAbsolutePath() + "/" + folder.getName()), folder.getPath());
 //                    try {
-//                        Directory directory = folder.createDirectory();
+//                        model.Directory directory = folder.createDirectory();
 //                        Assertions.assertEquals(folder.getName(), directory.getDirectoryName());
 //                        Assertions.assertTrue(directory.getFiles().isEmpty());
 //                    } catch (IOException e) {
@@ -60,7 +60,7 @@ public class DirectoryTest {
 //        File file = new File(directoryTestPath + "/" + localDirectoryImageAndTextTest);
 //        Path path = Paths.get(file.getAbsolutePath());
 //        FileSystem fs = path.getFileSystem();
-//        Directory localDirectory = new LocalDirectory(fs, path);
+//        model.Directory localDirectory = new LocalDirectory(fs, path);
 //
 //        // Проверили наличие двух папок в директории
 //        Assertions.assertEquals(localDirectoryImageAndTextTest, localDirectory.getDirectoryName());
@@ -86,7 +86,7 @@ public class DirectoryTest {
 //        File file = new File(directoryTestPath + "/" + localDirectoryImageAndTextTest);
 //        Path path = Paths.get(file.getAbsolutePath());
 //        FileSystem fs = path.getFileSystem();
-//        Directory localDirectory = new LocalDirectory(fs, path);
+//        model.Directory localDirectory = new LocalDirectory(fs, path);
 //
 //        // Проверили наличие двух папок в корневой директории: folder1 и folder2
 //        Assertions.assertEquals(localDirectoryImageAndTextTest, localDirectory.getDirectoryName());
@@ -97,7 +97,7 @@ public class DirectoryTest {
 //        files1.forEach(folder -> {
 //                    if (folder.getName().equals("folder1")) {
 //                        try {
-//                            Directory directory = folder.createDirectory();
+//                            model.Directory directory = folder.createDirectory();
 //                            Collection<Link> files11 = directory.getFiles();
 //                            Assertions.assertEquals(3, files11.size());
 //
@@ -105,7 +105,7 @@ public class DirectoryTest {
 //                                        if (folder11.getName().equals("folder11")) {
 //                                            Assertions.assertTrue(folder11.isDirectory());
 //                                            try {
-//                                                Directory directory11 = folder11.createDirectory();
+//                                                model.Directory directory11 = folder11.createDirectory();
 //                                                Assertions.assertTrue(directory11.getFiles().isEmpty());
 //                                            } catch (IOException e) {
 //                                                throw new RuntimeException("There is failed test: localDirectoryFoldersTest");
@@ -113,7 +113,7 @@ public class DirectoryTest {
 //                                        } else if (folder11.getName().equals("folder12")) {
 //                                            Assertions.assertTrue(folder11.isDirectory());
 //                                            try {
-//                                                Directory directory11 = folder11.createDirectory();
+//                                                model.Directory directory11 = folder11.createDirectory();
 //                                                Assertions.assertEquals(2, directory11.getFiles().size());
 //                                            } catch (IOException e) {
 //                                                throw new RuntimeException("There is failed test: localDirectoryFoldersTest");
@@ -121,7 +121,7 @@ public class DirectoryTest {
 //                                        } else if (folder11.getName().equals("folder13")) {
 //                                            Assertions.assertTrue(folder11.isDirectory());
 //                                            try {
-//                                                Directory directory11 = folder11.createDirectory();
+//                                                model.Directory directory11 = folder11.createDirectory();
 //                                                Assertions.assertEquals(1, directory11.getFiles().size());
 //                                            } catch (IOException e) {
 //                                                throw new RuntimeException("There is failed test: localDirectoryFoldersTest");

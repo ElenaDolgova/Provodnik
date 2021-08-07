@@ -1,3 +1,7 @@
+package gui;
+
+import model.Directory;
+
 import javax.swing.*;
 import java.io.IOException;
 import java.util.List;

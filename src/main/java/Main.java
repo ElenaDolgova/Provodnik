@@ -1,3 +1,9 @@
+import gui.Dimensions;
+import gui.DirectoryScrollPane;
+import gui.FilesScrollPane;
+import gui.PreviewPanel;
+import gui.Renderer;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -20,7 +26,7 @@ public class Main {
         final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
         final PreviewPanel PREVIEW_PANEL = new PreviewPanel();
 
-        Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
+        gui.Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
         FILES_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         DIRECTORY_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         PREVIEW_PANEL.init(GLOBAL_FRAME);

@@ -1,3 +1,7 @@
+package gui;
+
+import model.Directory;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;

@@ -1,3 +1,8 @@
+package gui;
+
+import model.Directory;
+import model.FtpFileDirectory;
+import model.LocalFileDirectory;
 import org.apache.commons.net.ftp.*;
 
 import javax.swing.DefaultListModel;

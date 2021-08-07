@@ -1,3 +1,5 @@
+package model;
+
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -12,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static model.ZipFileDirectory.isProbeContentZip;
+
 public class FtpFileDirectory implements Directory {
     private final FTPClient ftpClient;
     private final FTPFile ftpFile;
@@ -25,7 +29,7 @@ public class FtpFileDirectory implements Directory {
     }
 
     @Override
-    public void getFiles(Consumer<List<? extends Directory>> action, String ext) {
+    public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
         try {
             FTPListParseEngine engine = ftpClient.initiateListParsing(path);
             while (engine.hasNext()) {
@@ -48,7 +52,7 @@ public class FtpFileDirectory implements Directory {
                         }
                     }
                 }
-                action.accept(batch);
+                batchAction.accept(batch);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +66,7 @@ public class FtpFileDirectory implements Directory {
 
     @Override
     public Directory createDirectory() {
-        if ("application/zip".equals(getProbeContentType())) {
+        if (isProbeContentZip(getPath())) {
             try {
                 File file = File.createTempFile("tmp", ".zip");
                 file.deleteOnExit();
@@ -93,7 +97,7 @@ public class FtpFileDirectory implements Directory {
 
     @Override
     public boolean isDirectory() {
-        return ftpFile.isDirectory() || "application/zip".equals(getProbeContentType());
+        return ftpFile.isDirectory() || isProbeContentZip(getPath());
     }
 
     @Override
@@ -115,11 +119,6 @@ public class FtpFileDirectory implements Directory {
                 e.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public String getProbeContentType() {
-        return Directory.getProbeContentType(Paths.get(path));
     }
 
     public static String getFtpPath(String path, String name) {

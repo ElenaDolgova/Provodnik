@@ -1,3 +1,5 @@
+package model;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +12,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static model.ZipFileDirectory.isProbeContentZip;
+
 public class LocalFileDirectory implements Directory {
     private final FileSystem fs;
     private final Path path;
@@ -20,18 +24,18 @@ public class LocalFileDirectory implements Directory {
     }
 
     @Override
-    public void getFiles(Consumer<List<? extends Directory>> action, String ext) {
-        action.accept(Directory.walkFiles(path, 1)
+    public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
+        batchAction.accept(Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
                 .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
-                .map(this::getLink)
+                .map(this::getDirectory)
                 .sorted()
                 .collect(Collectors.toList()));
     }
 
-    private Directory getLink(Path path) {
+    private Directory getDirectory(Path path) {
         try {
-            if ("application/zip".equals(Directory.getProbeContentType(path))) {
+            if (isProbeContentZip(path)) {
                 FileSystem fs = FileSystems.newFileSystem(path, null);
                 return new ZipFileDirectory(path, fs, true);
             }

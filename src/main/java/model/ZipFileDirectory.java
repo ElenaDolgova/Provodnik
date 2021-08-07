@@ -1,3 +1,5 @@
+package model;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,19 +15,17 @@ public class ZipFileDirectory implements Directory {
     private final Path path;
     private final FileSystem fs;
     private final boolean isFirstZip;
-    private final String probeContentType;
 
     public ZipFileDirectory(Path path, FileSystem fs, boolean isFirstZip) {
         this.path = path;
         this.fs = fs;
         this.isFirstZip = isFirstZip;
-        this.probeContentType = getProbeContentType();
     }
 
     @Override
-    public void getFiles(Consumer<List<? extends Directory>> action, String ext) {
-        if ("application/zip".equals(probeContentType)) {
-            List<ZipFileDirectory> collect = Directory.streamAllFiles(fs, 2)
+    public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
+        if (isProbeContentZip(path)) {
+            List<ZipFileDirectory> collect = Directory.streamAllFiles(fs, 1)
                     .filter(path -> {
                         if (ext == null || ext.length() == 0) return true;
                         return ext.equals(Directory.getExtension(path));
@@ -38,15 +38,32 @@ public class ZipFileDirectory implements Directory {
                     .map(path -> new ZipFileDirectory(path, fs, false))
                     .sorted()
                     .collect(Collectors.toList());
-            action.accept(collect);
+            batchAction.accept(collect);
         }
         int depth = path.getNameCount() + 1;
-        action.accept(Directory.streamAllFiles(fs, depth)
+        batchAction.accept(Directory.streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
                 .filter(p -> ext == null || ext.length() == 0 || p.endsWith(ext))
                 .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileDirectory(path, fs, false))
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Directory createDirectory() throws IOException {
+        if (isProbeContentZip(path)) {
+            FileSystem newFileSystem;
+            if (isFirstZip) {
+                // создается просто самый первый zip
+                newFileSystem = FileSystems.newFileSystem(path, null);
+            } else {
+                //  zip внутри zip Создается новая файловая подсистема
+                newFileSystem = FileSystems.newFileSystem(fs.getPath(path.toString()), null);
+            }
+            return new ZipFileDirectory(path, newFileSystem, isFirstZip);
+        }
+        // когда директория внутри zip
+        return new ZipFileDirectory(path, fs, isFirstZip);
     }
 
     @Override
@@ -56,7 +73,7 @@ public class ZipFileDirectory implements Directory {
 
     @Override
     public boolean isDirectory() {
-        return Files.isDirectory(path) || "application/zip".equals(getProbeContentType());
+        return Files.isDirectory(path) || isProbeContentZip(path);
     }
 
     @Override
@@ -66,32 +83,12 @@ public class ZipFileDirectory implements Directory {
     }
 
     @Override
-    public Directory createDirectory() throws IOException {
-        String probeContentType = getProbeContentType();
-        if ("application/zip".equals(probeContentType)) {
-            if (isFirstZip) {
-                // создается просто самый первый zip
-                FileSystem newFileSystem =
-                        FileSystems.newFileSystem(path, null);
-                return new ZipFileDirectory(path, newFileSystem, isFirstZip);
-            } else {
-                //  zip внутри zip Создается новая файловая подсистема
-                FileSystem newFileSystem =
-                        FileSystems.newFileSystem(fs.getPath(path.toString()), null);
-                return new ZipFileDirectory(path, newFileSystem, isFirstZip);
-            }
-        }
-        // когда директория внутри zip
-        return new ZipFileDirectory(path, fs, isFirstZip);
-    }
-
-    @Override
     public String getName() {
         return String.valueOf(path.getFileName());
-//        if (path.getFileName() == null) {
-//            return "";
-//        }
-//        return path.getFileName().toString();
+    }
+
+    public static boolean isProbeContentZip(Path path) {
+        return "application/zip".equals(Directory.getProbeContentType(path));
     }
 
     @Override

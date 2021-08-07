@@ -1,3 +1,5 @@
+package model;
+
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
@@ -21,11 +23,11 @@ public interface Directory extends Comparable<Directory> {
 
     void processFile(Consumer<InputStream> consumer) throws IOException;
 
-    void getFiles(Consumer<List<? extends Directory>> action, String ext);
+    void getFiles(Consumer<List<? extends Directory>> batchAction, String ext);
 
-    default String getProbeContentType() {
-        return getProbeContentType(getPath());
-    }
+//    default String getProbeContentType() {
+//        return getProbeContentType(getPath());
+//    }
 
     static String getProbeContentType(Path path) {
         String probeContentType = null;
