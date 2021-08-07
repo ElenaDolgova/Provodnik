@@ -2,41 +2,64 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.*;
 import org.apache.commons.vfs2.FileSystemException;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneLayout;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileSystemView;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DirectoryScrollPane {
     // todo если под винду, то не понятно, что такое стартовый путь
-    private static final String FTP_PATH = "ftp://anonymous@ftp.bmc.com";
 
     private final JPanel mainDirectoryPane;
+    private final JScrollPane rootsScrollPane;
     private final JScrollPane jScrollPane;
     private final JButton connectToFtpButton;
 
-    // Приложение всегда открывается в локальной файловой системе
+
     public DirectoryScrollPane() {
-        JList<Directory> displayDirectory = null;
-        try {
-//            System.out.println("1 " + FileSystemView.getFileSystemView().getRoots()[0]);
-            File defaultPath = FileSystemView.getFileSystemView().getRoots()[0];
-            FileSystem fs = defaultPath.toPath().getFileSystem();
-            displayDirectory = new JList<>(createLocalDirectoryLinks(fs, defaultPath));
-        } catch (IOException e) {
-            e.printStackTrace();
+        List<Directory> allRootDirectory = new ArrayList<>();
+        for (File defPath : FileSystemView.getFileSystemView().getRoots()) {
+            FileSystem fs = defPath.toPath().getFileSystem();
+            allRootDirectory.add(new LocalDirectory(fs, defPath.toPath()));
         }
+        DefaultListModel<Directory> defaultRootList = new DefaultListModel<>();
+        allRootDirectory.forEach(defaultRootList::addElement);
+        JList<Directory> displayRootDirectory = new JList<>(defaultRootList);
+        JScrollPane rootsScrollPane = new JScrollPane(displayRootDirectory);
+        rootsScrollPane.setLayout(new ScrollPaneLayout());
+        this.rootsScrollPane = rootsScrollPane;
+
+        DefaultListModel<Directory> labelJList = new DefaultListModel<>();
+        labelJList.addElement(allRootDirectory.get(0));
+        JList<Directory> displayDirectory = new JList<>(labelJList);
         JScrollPane scrollPane = new JScrollPane(displayDirectory);
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
+
         this.mainDirectoryPane = new JPanel(new BorderLayout());
         this.connectToFtpButton = new JButton("Connect to ftp");
         this.mainDirectoryPane.add(this.connectToFtpButton, BorderLayout.SOUTH);
         this.mainDirectoryPane.add(this.jScrollPane, BorderLayout.CENTER);
+        this.mainDirectoryPane.add(this.rootsScrollPane, BorderLayout.NORTH);
     }
 
     public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
@@ -143,9 +166,11 @@ public class DirectoryScrollPane {
         return e -> {
             renderer.clearFileScrollPane();
             PreviewPanel.hideContent();
+            // todo заново инициализировать руты
             File defaultPath = FileSystemView.getFileSystemView().getRoots()[0];
             FileSystem fs = defaultPath.toPath().getFileSystem();
             getClearedDirectory().addElement(new LocalDirectory(fs, defaultPath.toPath()));
+
             connectToFtpButton.setText("Connect to Ftp");
             changeButtonActionListener(getFtpButtonMouseListener(renderer));
             renderer.updateFilesScrollPane(getLastDirectoryFromScroll());
