@@ -9,10 +9,6 @@ public class PreviewPanel extends Component {
     private final static JPanel jPanel = new JPanel(new GridBagLayout());
     private final static JLabel image = new JLabel();
 
-    public JTextArea getTextArea() {
-        return textArea;
-    }
-
     private final static JTextArea textArea = new JTextArea(7, 40);
 
     public void init(JFrame GLOBAL_FRAME) {

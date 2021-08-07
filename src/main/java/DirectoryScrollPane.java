@@ -27,9 +27,9 @@ import java.util.List;
 public class DirectoryScrollPane {
     /**
      * Самая левая панель, на которой расположены сверху вниз:
-     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link rootsScrollPane}
-     * - Скролл с путем открытых директорий {@link directoryScrollPane}
-     * - Кнопка подключения/отключения от ftp сервера {@link connectToFtpButton}
+     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link #rootsScrollPane}
+     * - Скролл с путем открытых директорий {@link #directoryScrollPane}
+     * - Кнопка подключения/отключения от ftp сервера {@link #connectToFtpButton}
      */
     private final JPanel mainDirectoryPane;
     /**
@@ -72,7 +72,7 @@ public class DirectoryScrollPane {
         List<Directory> allRootDirectory = new ArrayList<>();
         for (File defPath : FileSystemView.getFileSystemView().getRoots()) {
             FileSystem fs = defPath.toPath().getFileSystem();
-            allRootDirectory.add(new LocalDirectory(fs, defPath.toPath()));
+            allRootDirectory.add(new LocalFileDirectory(fs, defPath.toPath()));
         }
         return allRootDirectory;
     }
@@ -159,7 +159,7 @@ public class DirectoryScrollPane {
                 f.connect(ftpPath);
                 f.login("anonymous", "");
                 renderer.clearFileScrollPane();
-                FTPDirectory directory = new FTPDirectory(f, "/", "/");
+                FtpFileDirectory directory = new FtpFileDirectory(f, "/", null);
                 getClearedDirectory(directoryScrollPane).addElement(directory);
                 renderer.updateFilesScrollPane(directory);
                 connectToFtpButton.setText("Disconnect");

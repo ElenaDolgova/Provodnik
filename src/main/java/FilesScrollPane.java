@@ -47,8 +47,8 @@ public class FilesScrollPane {
         this.textField.addActionListener(getTextFiledListener(renderer));
         GLOBAL_FRAME.getContentPane().add(mainFileScrollPane, BorderLayout.CENTER);
 
-        DefaultListModel<Link> defaultListModel = new DefaultListModel<>();
-        JList<Link> displayFiles = new JList<>(defaultListModel);
+        DefaultListModel<Directory> defaultListModel = new DefaultListModel<>();
+        JList<Directory> displayFiles = new JList<>(defaultListModel);
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
         displayFiles.addMouseListener(FilesScrollPane.getMouseListener(renderer));
@@ -71,8 +71,8 @@ public class FilesScrollPane {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     PreviewPanel.hideContent();
-                    JList<Link> source = (JList<Link>) e.getSource();
-                    Link displayFiles = source.getSelectedValue();
+                    JList<Directory> source = (JList<Directory>) e.getSource();
+                    Directory displayFiles = source.getSelectedValue();
                     // todо тест кейса на добавление не повторяющихся файлов
                     // тест на добавление только нового! файлов в директорию
                     try {
@@ -116,8 +116,8 @@ public class FilesScrollPane {
                 boolean selected,
                 boolean expanded) {
 
-            Link file = (Link) value;
-            if (((Link) value).isDirectory()) {
+            Directory file = (Directory) value;
+            if (((Directory) value).isDirectory()) {
                 label.setIcon(folderIcon);
             } else {
                 label.setIcon(UIManager.getIcon("FileView.fileIcon"));

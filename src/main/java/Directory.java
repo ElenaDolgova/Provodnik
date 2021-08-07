@@ -1,6 +1,7 @@
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,16 +10,32 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public interface Directory {
-    /**
-     * @return todo
-     */
-    void getFiles(Consumer<List<? extends Link>> action, String ext);
+public interface Directory extends Comparable<Directory> {
+    Path getPath();
 
-    /**
-     * @return имя текущей директории
-     */
-    String getDirectoryName();
+    String getName();
+
+    boolean isDirectory();
+
+    Directory createDirectory() throws IOException;
+
+    void processFile(Consumer<InputStream> consumer) throws IOException;
+
+    void getFiles(Consumer<List<? extends Directory>> action, String ext);
+
+    default String getProbeContentType() {
+        return getProbeContentType(getPath());
+    }
+
+    static String getProbeContentType(Path path) {
+        String probeContentType = null;
+        try {
+            probeContentType = Files.probeContentType(path);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        return probeContentType;
+    }
 
     static Stream<Path> streamAllFiles(FileSystem fs, int depth) {
         return StreamSupport.stream(fs.getRootDirectories().spliterator(), false)

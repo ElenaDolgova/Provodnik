@@ -1,23 +1,58 @@
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPListParseEngine;
 
 import java.io.*;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
-public class FtpFileLink implements Link {
+public class FtpFileDirectory implements Directory {
     private final FTPClient ftpClient;
     private final FTPFile ftpFile;
     private final String path;
 
-    public FtpFileLink(FTPClient ftpClient, String path, FTPFile ftpFile) {
+    //https://www.mmnt.net/
+    public FtpFileDirectory(FTPClient ftpClient, String path, FTPFile ftpFile) {
         this.ftpClient = ftpClient;
         this.path = path;
         this.ftpFile = ftpFile;
+    }
+
+    @Override
+    public void getFiles(Consumer<List<? extends Directory>> action, String ext) {
+        try {
+            FTPListParseEngine engine = ftpClient.initiateListParsing(path);
+            while (engine.hasNext()) {
+                List<Directory> batch = new ArrayList<>();
+                FTPFile[] files = engine.getNext(300);
+                for (FTPFile file : files) {
+                    if (file != null) {
+                        if (ext == null || ext.length() == 0) {
+                            batch.add(new FtpFileDirectory(ftpClient, FtpFileDirectory.getFtpPath(path, file.getName()), file));
+                            continue;
+                        }
+                        boolean hasSuitableExtension;
+                        if (ext.contains(".")) {
+                            hasSuitableExtension = file.getName().endsWith(ext);
+                        } else {
+                            hasSuitableExtension = file.getName().endsWith("." + ext);
+                        }
+                        if (hasSuitableExtension) {
+                            batch.add(new FtpFileDirectory(ftpClient, FtpFileDirectory.getFtpPath(path, file.getName()), file));
+                        }
+                    }
+                }
+                action.accept(batch);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -37,12 +72,13 @@ public class FtpFileLink implements Link {
                     e.printStackTrace();
                 }
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
-                return new ZipDirectory(this, file.toPath(), newFileSystem);
+                // тут есть фишка с null на path
+                return new ZipFileDirectory(file.toPath(), newFileSystem, true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return new FTPDirectory(ftpClient, path, getName());
+        return new FtpFileDirectory(ftpClient, path, ftpFile);
     }
 
     public void downloadFile(OutputStream os) {
@@ -83,7 +119,7 @@ public class FtpFileLink implements Link {
 
     @Override
     public String getProbeContentType() {
-        return Link.getProbeContentType(Paths.get(path));
+        return Directory.getProbeContentType(Paths.get(path));
     }
 
     public static String getFtpPath(String path, String name) {
@@ -102,7 +138,7 @@ public class FtpFileLink implements Link {
     }
 
     @Override
-    public int compareTo(Link o) {
+    public int compareTo(Directory o) {
         if (o == null) {
             return 1;
         }

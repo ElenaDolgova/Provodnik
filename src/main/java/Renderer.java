@@ -5,11 +5,6 @@ import java.util.List;
 public class Renderer {
     private final DirectoryScrollPane directoryScrollPane;
     private final FilesScrollPane filesScrollPane;
-
-    public PreviewPanel getPreviewPanel() {
-        return previewPanel;
-    }
-
     private final PreviewPanel previewPanel;
 
     public Renderer(DirectoryScrollPane directoryScrollPane,
@@ -43,7 +38,7 @@ public class Renderer {
      */
     public void updateFilesScrollPane(Directory directory) {
         clearFileScrollPane();
-        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
         getDirectoryFiles(sourceModel, directory, null);
     }
 
@@ -53,7 +48,7 @@ public class Renderer {
      * @param ext Расширение, по которому нужно пофильтровать файлы
      */
     public void updateFilesScrollPane(String ext) {
-        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
         Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
         getDirectoryFiles(sourceModel, lastDirectory, ext);
     }
@@ -61,11 +56,11 @@ public class Renderer {
     /**
      * Метод возвращает список файлов текущей директории
      */
-    private void getDirectoryFiles(DefaultListModel<Link> list, Directory directory, String ext) {
+    private void getDirectoryFiles(DefaultListModel<Directory> list, Directory directory, String ext) {
         SwingUtilities.invokeLater(() -> setThrobberVisible(true));
         SwingUtilities.invokeLater(() -> {
             list.clear();
-            new SwingWorker<Void, Link>() {
+            new SwingWorker<Void, Directory>() {
                 @Override
                 protected Void doInBackground() {
                     directory.getFiles(it -> it.forEach(this::publish), ext);
@@ -73,7 +68,7 @@ public class Renderer {
                 }
 
                 @Override
-                protected void process(List<Link> chunks) {
+                protected void process(List<Directory> chunks) {
                     list.addAll(chunks);
                 }
 
@@ -89,9 +84,9 @@ public class Renderer {
      * Очищаем панель с файлами и скрываем превью информацию
      */
     public void clearFileScrollPane() {
-        JList<Link> links = (JList<Link>) this.filesScrollPane.getScrollPane().getViewport().getView();
+        JList<Directory> links = (JList<Directory>) this.filesScrollPane.getScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
-            DefaultListModel<Link> sourceModel = (DefaultListModel<Link>) links.getModel();
+            DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) links.getModel();
             sourceModel.clear();
         }
         PreviewPanel.hideContent();
@@ -102,7 +97,7 @@ public class Renderer {
      *
      * @param displayFiles
      */
-    public void updatePreviewPanel(String probeContentType, Link displayFiles) {
+    public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
             displayFiles.processFile(it -> previewPanel.update(probeContentType, it, this));
         } catch (IOException e) {
