@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static model.ZipFileDirectory.isProbeContentZip;
+import static model.ZipFileDirectory.isZip;
 
 public class LocalFileDirectory implements Directory {
     private final FileSystem fs;
@@ -35,7 +35,7 @@ public class LocalFileDirectory implements Directory {
 
     private Directory getDirectory(Path path) {
         try {
-            if (isProbeContentZip(path)) {
+            if (isZip(path)) {
                 FileSystem fs = FileSystems.newFileSystem(path, null);
                 return new ZipFileDirectory(path, fs, true);
             }

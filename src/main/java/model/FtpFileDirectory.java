@@ -11,12 +11,16 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
-import static model.ZipFileDirectory.isProbeContentZip;
+import static model.ZipFileDirectory.isZip;
 
 public class FtpFileDirectory implements Directory {
+    private static final Map<String, File> cachedZipFile = new HashMap<>();
+
     private final FTPClient ftpClient;
     private final FTPFile ftpFile;
     private final String path;
@@ -36,20 +40,8 @@ public class FtpFileDirectory implements Directory {
                 List<Directory> batch = new ArrayList<>();
                 FTPFile[] files = engine.getNext(300);
                 for (FTPFile file : files) {
-                    if (file != null) {
-                        if (ext == null || ext.length() == 0) {
-                            batch.add(new FtpFileDirectory(ftpClient, FtpFileDirectory.getFtpPath(path, file.getName()), file));
-                            continue;
-                        }
-                        boolean hasSuitableExtension;
-                        if (ext.contains(".")) {
-                            hasSuitableExtension = file.getName().endsWith(ext);
-                        } else {
-                            hasSuitableExtension = file.getName().endsWith("." + ext);
-                        }
-                        if (hasSuitableExtension) {
-                            batch.add(new FtpFileDirectory(ftpClient, FtpFileDirectory.getFtpPath(path, file.getName()), file));
-                        }
+                    if (file != null && isSuitableForAdding(ext, file)) {
+                        batch.add(new FtpFileDirectory(ftpClient, getFtpPath(file.getName()), file));
                     }
                 }
                 batchAction.accept(batch);
@@ -59,22 +51,28 @@ public class FtpFileDirectory implements Directory {
         }
     }
 
+    private boolean isSuitableForAdding(String ext, FTPFile file) {
+        return ext == null || ext.length() == 0 || hasSuitableExtension(ext, file);
+    }
+
+    private boolean hasSuitableExtension(String ext, FTPFile file) {
+        if (ext.contains(".")) {
+            return file.getName().endsWith(ext);
+        } else {
+            return file.getName().endsWith("." + ext);
+        }
+    }
+
     @Override
     public Path getPath() {
         return Paths.get(path);
     }
 
     @Override
-    public Directory createDirectory() {
-        if (isProbeContentZip(getPath())) {
+    public Directory createDirectory() throws IOException {
+        if (isZip(getPath())) {
+            File file = getFileFromCacheOrDownload();
             try {
-                File file = File.createTempFile("tmp", ".zip");
-                file.deleteOnExit();
-                try (OutputStream outputStream = new FileOutputStream(file)) {
-                    downloadFile(outputStream);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
                 // тут есть фишка с null на path
                 return new ZipFileDirectory(file.toPath(), newFileSystem, true);
@@ -83,6 +81,23 @@ public class FtpFileDirectory implements Directory {
             }
         }
         return new FtpFileDirectory(ftpClient, path, ftpFile);
+    }
+
+    private File getFileFromCacheOrDownload() throws IOException {
+        File file;
+        if (cachedZipFile.containsKey(path)) {
+            file = cachedZipFile.get(path);
+        } else {
+            file = File.createTempFile("tmp", ".zip");
+            file.deleteOnExit();
+            try (OutputStream outputStream = new FileOutputStream(file)) {
+                downloadFile(outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            cachedZipFile.put(path, file);
+        }
+        return file;
     }
 
     public void downloadFile(OutputStream os) {
@@ -97,7 +112,7 @@ public class FtpFileDirectory implements Directory {
 
     @Override
     public boolean isDirectory() {
-        return ftpFile.isDirectory() || isProbeContentZip(getPath());
+        return ftpFile.isDirectory() || isZip(getPath());
     }
 
     @Override
@@ -121,9 +136,9 @@ public class FtpFileDirectory implements Directory {
         }
     }
 
-    public static String getFtpPath(String path, String name) {
+    public String getFtpPath(String name) {
         String newPath;
-        if (path.equals("/")) {
+        if ("/".equals(path)) {
             newPath = path + name;
         } else {
             newPath = path + "/" + name;

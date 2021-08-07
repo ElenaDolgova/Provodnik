@@ -84,7 +84,8 @@ public class FilesScrollPane {
                             Directory newDirectory = displayFiles.createDirectory();
                             renderer.addNewDirectory(newDirectory);
                         } else {
-                            renderer.updatePreviewPanel(displayFiles.getProbeContentType(), displayFiles);
+                            renderer.updatePreviewPanel(
+                                    Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
                         }
                     } catch (IOException ioException) {
                         ioException.printStackTrace();

@@ -25,10 +25,6 @@ public interface Directory extends Comparable<Directory> {
 
     void getFiles(Consumer<List<? extends Directory>> batchAction, String ext);
 
-//    default String getProbeContentType() {
-//        return getProbeContentType(getPath());
-//    }
-
     static String getProbeContentType(Path path) {
         String probeContentType = null;
         try {

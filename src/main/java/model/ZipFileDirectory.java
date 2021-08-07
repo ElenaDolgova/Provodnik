@@ -24,7 +24,7 @@ public class ZipFileDirectory implements Directory {
 
     @Override
     public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
-        if (isProbeContentZip(path)) {
+        if (isZip(path)) {
             List<ZipFileDirectory> collect = Directory.streamAllFiles(fs, 1)
                     .filter(path -> {
                         if (ext == null || ext.length() == 0) return true;
@@ -51,7 +51,7 @@ public class ZipFileDirectory implements Directory {
 
     @Override
     public Directory createDirectory() throws IOException {
-        if (isProbeContentZip(path)) {
+        if (isZip(path)) {
             FileSystem newFileSystem;
             if (isFirstZip) {
                 // создается просто самый первый zip
@@ -73,7 +73,7 @@ public class ZipFileDirectory implements Directory {
 
     @Override
     public boolean isDirectory() {
-        return Files.isDirectory(path) || isProbeContentZip(path);
+        return Files.isDirectory(path) || isZip(path);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ZipFileDirectory implements Directory {
         return String.valueOf(path.getFileName());
     }
 
-    public static boolean isProbeContentZip(Path path) {
+    public static boolean isZip(Path path) {
         return "application/zip".equals(Directory.getProbeContentType(path));
     }
 
