@@ -1,8 +1,8 @@
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPListParseEngine;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,18 +28,20 @@ public class FTPDirectory implements Directory {
                 List<Link> batch = new ArrayList<>();
                 FTPFile[] files = engine.getNext(300);
                 for (FTPFile file : files) {
-                    if (ext == null || StringUtils.isBlank(ext)) {
-                        batch.add(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
-                        continue;
-                    }
-                    boolean hasSuitableExtension;
-                    if (ext.contains(".")) {
-                        hasSuitableExtension = file.getName().endsWith(ext);
-                    } else {
-                        hasSuitableExtension = file.getName().endsWith("." + ext);
-                    }
-                    if (hasSuitableExtension) {
-                        batch.add(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
+                    if (file != null) {
+                        if (ext == null || ext.length() == 0) {
+                            batch.add(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
+                            continue;
+                        }
+                        boolean hasSuitableExtension;
+                        if (ext.contains(".")) {
+                            hasSuitableExtension = file.getName().endsWith(ext);
+                        } else {
+                            hasSuitableExtension = file.getName().endsWith("." + ext);
+                        }
+                        if (hasSuitableExtension) {
+                            batch.add(new FtpFileLink(ftpClient, FtpFileLink.getFtpPath(path, file.getName()), file));
+                        }
                     }
                 }
                 action.accept(batch);

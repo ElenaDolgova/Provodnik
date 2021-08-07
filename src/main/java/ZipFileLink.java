@@ -42,20 +42,23 @@ public class ZipFileLink implements Link {
                 // создается просто самый первый zip
                 FileSystem newFileSystem =
                         FileSystems.newFileSystem(path, null);
-                return new ZipDirectory(this, newFileSystem);
+                return new ZipDirectory(this, null, newFileSystem);
             } else {
                 //  zip внутри zip Создается новая файловая подсистема
                 FileSystem newFileSystem =
                         FileSystems.newFileSystem(fs.getPath(path.toString()), null);
-                return new ZipDirectory(this, newFileSystem);
+                return new ZipDirectory(this, null, newFileSystem);
             }
         }
         // когда директория внутри zip
-        return new ZipDirectory(this, fs);
+        return new ZipDirectory(this, null, fs);
     }
 
     @Override
     public String getName() {
+//        if (path.getFileName() == null) {
+//            return "";
+//        }
         return path.getFileName().toString();
     }
 

@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -14,6 +15,8 @@ public interface Link extends Comparable<Link> {
     Directory createDirectory() throws IOException;
 
     void processFile(Consumer<InputStream> consumer) throws IOException;
+
+    default void downloadFile(OutputStream os) {}
 
     default String getProbeContentType() {
         return getProbeContentType(getPath());

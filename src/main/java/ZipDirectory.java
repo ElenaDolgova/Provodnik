@@ -1,5 +1,3 @@
-import org.apache.commons.lang3.StringUtils;
-
 import java.nio.file.*;
 import java.util.List;
 import java.util.function.Consumer;
@@ -10,8 +8,8 @@ public class ZipDirectory implements Directory {
     private final Path path;
     private final String probeContentType;
 
-    public ZipDirectory(ZipFileLink displayFiles, FileSystem fs) {
-        this.path = displayFiles.getPath();
+    public ZipDirectory(Link displayFiles, Path path, FileSystem fs) {
+        this.path = path != null ? path : displayFiles.getPath();
         this.probeContentType = displayFiles.getProbeContentType();
         this.fs = fs;
     }
@@ -19,19 +17,20 @@ public class ZipDirectory implements Directory {
     @Override
     public void getFiles(Consumer<List<? extends Link>> action, String ext) {
         if ("application/zip".equals(probeContentType)) {
-            action.accept(Directory.streamAllFiles(fs, 2)
-                    .filter(p -> {
-                        if (ext == null || StringUtils.isBlank(ext)) return true;
-                        return ext.equals(Directory.getExtension(p));
+            List<ZipFileLink> collect = Directory.streamAllFiles(fs, 2)
+                    .filter(path -> {
+                        if (ext == null || ext.length() == 0) return true;
+                        return ext.equals(Directory.getExtension(path));
                     })
-                    .filter(p -> {
-                        Path parent = p.getParent();
-                        return p.getNameCount() > 1 && parent != null &&
-                                p.startsWith("/" + getDirectoryName().substring(0, getDirectoryName().lastIndexOf(".")));
+                    .filter(path -> {
+                        Path parent = path.getParent();
+                        // zip на macos создаются с доп дирекотрий корня
+                        return parent != null && !path.startsWith("/__MACOSX");
                     })
                     .map(path -> new ZipFileLink(path, fs, false))
                     .sorted()
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+            action.accept(collect);
         }
         int depth = path.getNameCount() + 1;
         action.accept(Directory.streamAllFiles(fs, depth)

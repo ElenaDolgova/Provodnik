@@ -42,6 +42,7 @@ public class Renderer {
      * @param directory Дирктория, файлы для которой нужно обновить
      */
     public void updateFilesScrollPane(Directory directory) {
+        clearFileScrollPane();
         DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
         getDirectoryFiles(sourceModel, directory, null);
     }
@@ -84,12 +85,16 @@ public class Renderer {
         });
     }
 
+    /**
+     * Очищаем панель с файлами и скрываем превью информацию
+     */
     public void clearFileScrollPane() {
         JList<Link> links = (JList<Link>) this.filesScrollPane.getScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
             DefaultListModel<Link> sourceModel = (DefaultListModel<Link>) links.getModel();
             sourceModel.clear();
         }
+        PreviewPanel.hideContent();
     }
 
     /**

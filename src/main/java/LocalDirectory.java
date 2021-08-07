@@ -1,5 +1,3 @@
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
@@ -23,7 +21,7 @@ public class LocalDirectory implements Directory {
     public void getFiles(Consumer<List<? extends Link>> action, String ext) {
         action.accept(Directory.walkFiles(path, 1)
                 .filter(p -> p.getNameCount() == path.getNameCount() + 1)
-                .filter(p -> ext == null || StringUtils.isBlank(ext) || ext.equals(Directory.getExtension(p)))
+                .filter(p -> ext == null || ext.length() == 0 || ext.equals(Directory.getExtension(p)))
                 .map(this::getLink)
                 .sorted()
                 .collect(Collectors.toList()));

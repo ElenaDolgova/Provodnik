@@ -2,7 +2,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.io.IOException;
 
 public class FilesScrollPane {
@@ -23,7 +22,7 @@ public class FilesScrollPane {
         this.textField = new JTextField();
         this.spinner = new JLabel(
                 new ImageIcon(
-                        new ImageIcon("src/main/resources/loading.gif")
+                        new ImageIcon(getClass().getClassLoader().getResource("loading.gif"))
                                 .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
                 )
         );
@@ -34,10 +33,9 @@ public class FilesScrollPane {
         this.mainFileScrollPane.add(jScrollPane, BorderLayout.CENTER);
         this.mainFileScrollPane.add(northPanel, BorderLayout.NORTH);
 
-        File folderImage = new File("src/main/resources/folder.png");
         ImageIcon folderIcon = null;
         try {
-            Image image = ImageIO.read(folderImage);
+            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
             folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
         } catch (IOException e) {
             e.printStackTrace();
