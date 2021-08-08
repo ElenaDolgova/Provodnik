@@ -68,6 +68,5 @@ public interface Directory {
             return false;
         }
         return probeContentType.contains("zip");
-//        return "application/zip".equals(Directory.getProbeContentType(path));
     }
 }

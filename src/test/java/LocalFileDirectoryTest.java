@@ -10,13 +10,11 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LocalFileDirectoryTest {
-    private final static String directoryTestPath = "src/test/resources/DirectoryTest";
+    private final static String directoryTestPath = "src/test/resources/LocalFileDirectoryTest";
 
     @Test
     @DisplayName("Проверяем пустую директорию без фильтрации")
@@ -26,7 +24,7 @@ public class LocalFileDirectoryTest {
         FileSystem fs = path.getFileSystem();
         Directory localDirectory = new LocalFileDirectory(fs, path);
 
-        Collection<Directory> response = getResponseFiles(localDirectory, null);
+        Collection<Directory> response = TestUtilities.getResponseFiles(localDirectory, null);
         Assertions.assertEquals("folder1", localDirectory.getName());
         Assertions.assertTrue(response.isEmpty());
     }
@@ -40,7 +38,7 @@ public class LocalFileDirectoryTest {
         FileSystem fs = path.getFileSystem();
         Directory localDirectory = new LocalFileDirectory(fs, path);
 
-        Collection<Directory> responseZip = getResponseFiles(localDirectory, "zip");
+        Collection<Directory> responseZip = TestUtilities.getResponseFiles(localDirectory, "zip");
         Assertions.assertTrue(responseZip.isEmpty());
     }
 
@@ -52,7 +50,7 @@ public class LocalFileDirectoryTest {
         FileSystem fs = path.getFileSystem();
         Directory localDirectory = new LocalFileDirectory(fs, path);
 
-        Collection<Directory> responseTxt = getResponseFiles(localDirectory, "txt");
+        Collection<Directory> responseTxt = TestUtilities.getResponseFiles(localDirectory, "txt");
         Assertions.assertTrue(responseTxt.isEmpty());
     }
 
@@ -67,7 +65,7 @@ public class LocalFileDirectoryTest {
         // Проверили наличие двух папок в директории
         Assertions.assertEquals("localDirectoryTest", localDirectory.getName());
 
-        Collection<Directory> response = getResponseFiles(localDirectory, null);
+        Collection<Directory> response = TestUtilities.getResponseFiles(localDirectory, null);
         Assertions.assertEquals(2, response.size());
 
         response.forEach(
@@ -78,14 +76,14 @@ public class LocalFileDirectoryTest {
                     Directory directory = folder.createDirectory();
                     Assertions.assertEquals(folder.getName(), directory.getName());
 
-                    Collection<Directory> subDirectory = getResponseFiles(directory, null);
+                    Collection<Directory> subDirectory = TestUtilities.getResponseFiles(directory, null);
 
                     Assertions.assertTrue(subDirectory.isEmpty());
                 });
     }
 
     @Test
-    @DisplayName("Проверяем директорию, состоящую из картинок")
+    @DisplayName("Проверяем директорию, состоящую из картинок и текста. Фильтрация по расширению png")
     public void localDirectoryImageAndTextTest() {
         String localDirectoryImageAndTextTest = "localDirectoryImageAndTextTest";
         File file = new File(directoryTestPath + "/" + localDirectoryImageAndTextTest);
@@ -96,7 +94,7 @@ public class LocalFileDirectoryTest {
         // Проверили наличие двух папок в директории
         Assertions.assertEquals(localDirectoryImageAndTextTest, localDirectory.getName());
 
-        Collection<Directory> response = getResponseFiles(localDirectory, null);
+        Collection<Directory> response = TestUtilities.getResponseFiles(localDirectory, "png");
         Assertions.assertEquals(2, response.size());
 
         response.forEach(
@@ -115,7 +113,37 @@ public class LocalFileDirectoryTest {
     }
 
     @Test
-    @DisplayName("Ходим по папкам")
+    @DisplayName("Проверяем директорию, состоящую из картинок и текста. Фильтрация по расширению txt")
+    public void localDirectoryFilterTxtTest() {
+        String localDirectoryImageAndTextTest = "localDirectoryImageAndTextTest";
+        File file = new File(directoryTestPath + "/" + localDirectoryImageAndTextTest);
+        Path path = Paths.get(file.getAbsolutePath());
+        FileSystem fs = path.getFileSystem();
+        Directory localDirectory = new LocalFileDirectory(fs, path);
+
+        // Проверили наличие двух папок в директории
+        Assertions.assertEquals(localDirectoryImageAndTextTest, localDirectory.getName());
+
+        Collection<Directory> response = TestUtilities.getResponseFiles(localDirectory, "txt");
+        Assertions.assertEquals(1, response.size());
+
+        response.forEach(
+                folder -> {
+                    Assertions.assertFalse(folder.isDirectory());
+                    Assertions.assertTrue(Directory.getProbeContentType(folder.getPath()).contains("text"));
+                    Assertions.assertEquals(Paths.get(file.getAbsolutePath() + "/" + folder.getName()), folder.getPath());
+                    AtomicReference<InputStream> imageStream = new AtomicReference<>();
+                    folder.processFile(imageStream::set);
+                    try {
+                        Assertions.assertTrue(imageStream.get().readAllBytes().length > 0);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Cant read txt file");
+                    }
+                });
+    }
+
+    @Test
+    @DisplayName("Ходим по папкам и подпапкам")
     public void localDirectoryFoldersTest() {
         String localDirectoryImageAndTextTest = "localDirectoryFoldersTest";
         File file = new File(directoryTestPath + "/" + localDirectoryImageAndTextTest);
@@ -125,14 +153,14 @@ public class LocalFileDirectoryTest {
 
         // Проверили наличие двух папок в корневой директории: folder1 и folder2
         Assertions.assertEquals(localDirectoryImageAndTextTest, localDirectory.getName());
-        Collection<Directory> files1 = getResponseFiles(localDirectory, null);
+        Collection<Directory> files1 = TestUtilities.getResponseFiles(localDirectory, null);
         Assertions.assertEquals(2, files1.size());
         files1.forEach(folder -> Assertions.assertTrue(folder.isDirectory()));
 
         files1.forEach(folder -> {
                     if (folder.getName().equals("folder1")) {
                         model.Directory directory = folder.createDirectory();
-                        Collection<Directory> files11 = getResponseFiles(directory, null);
+                        Collection<Directory> files11 = TestUtilities.getResponseFiles(directory, null);
                         Assertions.assertEquals(3, files11.size());
 
                         files11.forEach(folder11 -> {
@@ -140,17 +168,17 @@ public class LocalFileDirectoryTest {
                                         case "folder11":
                                             Assertions.assertTrue(folder11.isDirectory());
                                             Assertions.assertTrue(
-                                                    getResponseFiles(
+                                                    TestUtilities.getResponseFiles(
                                                             folder11.createDirectory(), null).isEmpty());
                                             break;
                                         case "folder12":
                                             Assertions.assertTrue(folder11.isDirectory());
                                             Assertions.assertEquals(2,
-                                                    getResponseFiles(folder11.createDirectory().createDirectory(), null).size());
+                                                    TestUtilities.getResponseFiles(folder11.createDirectory().createDirectory(), null).size());
                                             break;
                                         case "folder13":
                                             Assertions.assertTrue(folder11.isDirectory());
-                                            Assertions.assertEquals(1, getResponseFiles(folder11.createDirectory(), null).size());
+                                            Assertions.assertEquals(1, TestUtilities.getResponseFiles(folder11.createDirectory(), null).size());
                                             break;
                                         default:
                                             throw new RuntimeException("There is no another folders: localDirectoryFoldersTest");
@@ -160,11 +188,5 @@ public class LocalFileDirectoryTest {
                     }
                 }
         );
-    }
-
-    private Collection<Directory> getResponseFiles(Directory localDirectory, String ext) {
-        List<Directory> response = new ArrayList<>();
-        localDirectory.getFiles(response::addAll, ext);
-        return response;
     }
 }

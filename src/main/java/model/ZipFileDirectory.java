@@ -58,7 +58,7 @@ public class ZipFileDirectory implements Directory {
         int depth = path.getNameCount() + 1;
         batchAction.accept(streamAllFiles(fs, depth)
                 .filter(p -> p.startsWith("/" + path))
-                .filter(p -> ext == null || ext.length() == 0 || p.endsWith(ext))
+                .filter(p -> ext == null || ext.length() == 0 || ext.equals(getExtension(p)))
                 .filter(p -> p.getNameCount() > path.getNameCount())
                 .map(path -> new ZipFileDirectory(path, fs, false))
                 .collect(Collectors.toList()));
