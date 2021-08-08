@@ -2,6 +2,7 @@ package model;
 
 import exception.FileProcessingException;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ public interface Directory {
 
     void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) throws FileProcessingException;
 
+    @Nullable
     static String getProbeContentType(Path path) {
         String probeContentType = null;
         try {
@@ -54,6 +56,11 @@ public interface Directory {
     }
 
     static boolean isZip(Path path) {
-        return "application/zip".equals(Directory.getProbeContentType(path));
+        String probeContentType = Directory.getProbeContentType(path);
+        if (probeContentType == null){
+            return false;
+        }
+        return probeContentType.contains("zip");
+//        return "application/zip".equals(Directory.getProbeContentType(path));
     }
 }

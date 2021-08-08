@@ -1,7 +1,7 @@
 import gui.Dimensions;
-import gui.DirectoryScrollPane;
-import gui.FilesScrollPane;
-import gui.PreviewPanel;
+import gui.DirectoryView;
+import gui.FilesView;
+import gui.PreviewPanelView;
 import gui.Renderer;
 
 import javax.swing.JFrame;
@@ -11,14 +11,15 @@ import java.awt.Dimension;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 // todo
-// разобраться с рутовыми директориями в windows
-// разобраться с ftp подключением на windows
+// + разобраться с рутовыми директориями в windows
+// + разобраться с ftp подключением на windows
+// разобраться со скачиванием файла с ftp на windows
 // + перенести gif из ресурсов
 // пароль и логин на ftp
 // пароль и логин на zip
 // расширить окошки внутренние
-// кодировка
-// добавить последнюю посещенную директорию на скролл с файлами
+// + кодировка
+// + добавить последнюю посещенную директорию на скролл с файлами
 // подсвечивать рут, в котором находимся
 // тесты
 // превью на текстовые файлы чтобы можно было мотать
@@ -36,9 +37,9 @@ public class Main {
         GLOBAL_FRAME.setDefaultCloseOperation(EXIT_ON_CLOSE);
         GLOBAL_FRAME.setPreferredSize(new Dimension(Dimensions.MAIN_WIDTH, Dimensions.MAIN_HEIGHT));
 
-        final DirectoryScrollPane DIRECTORY_SCROLL_PANE = new DirectoryScrollPane();
-        final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
-        final PreviewPanel PREVIEW_PANEL = new PreviewPanel();
+        final DirectoryView DIRECTORY_SCROLL_PANE = new DirectoryView();
+        final FilesView FILES_SCROLL_PANE = new FilesView();
+        final PreviewPanelView PREVIEW_PANEL = new PreviewPanelView();
 
         gui.Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
         FILES_SCROLL_PANE.init(GLOBAL_FRAME, renderer);

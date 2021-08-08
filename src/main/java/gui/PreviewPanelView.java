@@ -6,7 +6,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.stream.Collectors;
 
-public class PreviewPanel extends Component {
+public class PreviewPanelView extends Component {
     private static final int MAX_TEXT_LINES = 20;
     private final static JPanel jPanel = new JPanel(new GridBagLayout());
     private final static JLabel image = new JLabel();

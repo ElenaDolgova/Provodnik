@@ -7,16 +7,16 @@ import javax.swing.*;
 import java.util.List;
 
 public class Renderer {
-    private final DirectoryScrollPane directoryScrollPane;
-    private final FilesScrollPane filesScrollPane;
-    private final PreviewPanel previewPanel;
+    private final DirectoryView directoryView;
+    private final FilesView filesView;
+    private final PreviewPanelView previewPanelView;
 
-    public Renderer(DirectoryScrollPane directoryScrollPane,
-                    FilesScrollPane filesScrollPane,
-                    PreviewPanel previewPanel) {
-        this.directoryScrollPane = directoryScrollPane;
-        this.filesScrollPane = filesScrollPane;
-        this.previewPanel = previewPanel;
+    public Renderer(DirectoryView directoryView,
+                    FilesView filesView,
+                    PreviewPanelView previewPanelView) {
+        this.directoryView = directoryView;
+        this.filesView = filesView;
+        this.previewPanelView = previewPanelView;
     }
 
     /**
@@ -25,10 +25,10 @@ public class Renderer {
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
     public void addNewDirectory(Directory newDirectory) {
-        JList<Directory> displayDirectory = (JList<Directory>) directoryScrollPane.getScrollPane().getViewport().getView();
+        JList<Directory> displayDirectory = (JList<Directory>) directoryView.getScrollPane().getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
 
-        if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
+        if (sourceModel.getSize() == 0 || !sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями
             sourceModel.addElement(newDirectory);
             displayDirectory.setSelectedIndex(sourceModel.getSize() - 1);
@@ -43,12 +43,11 @@ public class Renderer {
      * @param to - до какого номера в дереве директорий убирать директории
      * @return последний оставшийся елемент в диреткории
      */
-    public Directory squeezeDirectories(int to) {
-        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
-        for (int i = sourceModel.getSize() - 1; i > to && i >= 1; --i) {
+    public void squeezeDirectories(int to) {
+        DefaultListModel<Directory> sourceModel = getModel(directoryView.getScrollPane());
+        for (int i = sourceModel.getSize() - 1; i > to; --i) {
             sourceModel.remove(i);
         }
-        return sourceModel.get(sourceModel.getSize() - 1);
     }
 
     /**
@@ -58,7 +57,7 @@ public class Renderer {
      * @return последний оставшийся елемент в диреткории
      */
     public Directory squeezeDirectoriesByOne() {
-        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(directoryView.getScrollPane());
         if (sourceModel.getSize() > 1) {
             sourceModel.remove(sourceModel.getSize() - 1);
         }
@@ -71,8 +70,8 @@ public class Renderer {
      * @param directory Дирктория, файлы для которой нужно обновить
      */
     public void updateFilesScrollPane(Directory directory) {
-        clearFileScrollPane();
-        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
+//        clearFileScrollPane();
+        DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
         getDirectoryFiles(sourceModel, directory, null);
     }
 
@@ -82,8 +81,8 @@ public class Renderer {
      * @param ext Расширение, по которому нужно пофильтровать файлы
      */
     public void updateFilesScrollPane(String ext) {
-        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
-        Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
+        DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
+        Directory lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getScrollPane());
         getDirectoryFiles(sourceModel, lastDirectory, ext);
     }
 
@@ -122,12 +121,12 @@ public class Renderer {
      * Очищаем панель с файлами и скрываем превью информацию
      */
     public void clearFileScrollPane() {
-        JList<Directory> links = (JList<Directory>) this.filesScrollPane.getScrollPane().getViewport().getView();
+        JList<Directory> links = (JList<Directory>) filesView.getScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
             DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) links.getModel();
             sourceModel.clear();
         }
-        PreviewPanel.hideContent();
+        PreviewPanelView.hideContent();
     }
 
     /**
@@ -137,7 +136,7 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
-            displayFiles.processFile(it -> previewPanel.update(probeContentType, it, this));
+            displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
         } catch (exception.FileProcessingException e) {
             e.printStackTrace();
         }
@@ -149,12 +148,12 @@ public class Renderer {
     }
 
     public void setSpinnerVisible(boolean visible) {
-        filesScrollPane.getSpinner().setVisible(visible);
+        filesView.getSpinner().setVisible(visible);
     }
 
     public void showWarningPane(FileProcessingException e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(filesScrollPane.getScrollPane(),
+        JOptionPane.showMessageDialog(filesView.getScrollPane(),
                 new String[]{e.getMessage()},
                 "Error",
                 JOptionPane.ERROR_MESSAGE);

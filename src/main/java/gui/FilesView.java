@@ -3,7 +3,6 @@ package gui;
 import exception.FileProcessingException;
 import model.Directory;
 
-import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -20,14 +19,12 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.*;
-import java.io.IOException;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 
-public class FilesScrollPane {
+public class FilesView {
     private final JPanel mainFileScrollPane;
     private final JScrollPane jScrollPane;
     private final JPanel northPanel;
@@ -35,7 +32,7 @@ public class FilesScrollPane {
     private final JLabel spinner;
     private final ImageIcon folderIcon;
 
-    public FilesScrollPane() {
+    public FilesView() {
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
@@ -43,12 +40,13 @@ public class FilesScrollPane {
         this.northPanel = new JPanel(new BorderLayout());
 
         this.textField = new JTextField();
-        this.spinner = new JLabel(
-                new ImageIcon(
-                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
-                                .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
-                )
-        );
+//        this.spinner = new JLabel(
+//                new ImageIcon(
+//                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
+//                                .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
+//                )
+//        );
+        this.spinner = new JLabel();
         spinner.setVisible(false);
         this.northPanel.add(this.spinner, BorderLayout.EAST);
         this.northPanel.add(this.textField, BorderLayout.CENTER);
@@ -57,12 +55,12 @@ public class FilesScrollPane {
         this.mainFileScrollPane.add(northPanel, BorderLayout.NORTH);
 
         ImageIcon folderIcon = null;
-        try {
-            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
-            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+////            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
+////            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         this.folderIcon = folderIcon;
     }
 
@@ -74,8 +72,8 @@ public class FilesScrollPane {
         JList<Directory> displayFiles = new JList<>(defaultListModel);
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseDisplayFilesListener(renderer));
-        displayFiles.addKeyListener(FilesScrollPane.DisplayFilesListener(renderer));
+        displayFiles.addMouseListener(FilesView.getMouseDisplayFilesListener(renderer));
+        displayFiles.addKeyListener(FilesView.DisplayFilesListener(renderer));
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -110,7 +108,7 @@ public class FilesScrollPane {
                 if (keyEvent.getKeyCode() == VK_ENTER) {
                     fileScrollEvent(keyEvent, renderer);
                 } else if (keyEvent.getKeyCode() == VK_ESCAPE) {
-                    DirectoryScrollPane.removeLastElementFromDirectory(renderer);
+                    DirectoryView.removeLastElementFromDirectory(renderer);
                 }
             }
 
@@ -128,7 +126,7 @@ public class FilesScrollPane {
      * @param renderer
      */
     private static void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
-        PreviewPanel.hideContent();
+        PreviewPanelView.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();
         Directory displayFiles = source.getSelectedValue();
         // todо тест кейса на добавление не повторяющихся файлов
