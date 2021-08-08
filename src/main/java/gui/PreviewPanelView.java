@@ -6,27 +6,26 @@ import java.awt.*;
 import java.io.*;
 import java.util.stream.Collectors;
 
-public class PreviewPanelView extends Component {
+public class PreviewPanelView {
     private static final int MAX_TEXT_LINES = 20;
-    private final static JPanel jPanel = new JPanel(new GridBagLayout());
-    private final static JLabel image = new JLabel();
+    private final JPanel panel = new JPanel(new GridBagLayout());
+    private final JLabel image = new JLabel();
 
-    private final static JTextArea textArea = new JTextArea(7, 40);
+    private final JTextArea textArea = new JTextArea(7, 40);
 
-    public void init(JFrame GLOBAL_FRAME) {
-        jPanel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
+    public void init() {
+        panel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
         initImage();
         initTextArea();
-        GLOBAL_FRAME.getContentPane().add(jPanel, BorderLayout.EAST);
     }
 
     private void initImage() {
-        jPanel.add(image);
+        panel.add(image);
         image.setVisible(false);
     }
 
     private void initTextArea() {
-        jPanel.add(textArea);
+        panel.add(textArea);
         textArea.setVisible(false);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -52,7 +51,7 @@ public class PreviewPanelView extends Component {
             ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
             ImageIcon icon =
-                    new ImageIcon(inputImage.getScaledInstance(jPanel.getWidth(), -1, Image.SCALE_FAST));
+                    new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_FAST));
             image.setIcon(icon);
             textArea.setVisible(false);
             image.setVisible(true);
@@ -79,7 +78,11 @@ public class PreviewPanelView extends Component {
         }
     }
 
-    public static void hideContent() {
+    public JPanel getPanel() {
+        return panel;
+    }
+
+    public void hideContent() {
         image.setVisible(false);
         textArea.setVisible(false);
     }

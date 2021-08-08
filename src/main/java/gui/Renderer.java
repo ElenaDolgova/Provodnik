@@ -70,7 +70,6 @@ public class Renderer {
      * @param directory Дирктория, файлы для которой нужно обновить
      */
     public void updateFilesScrollPane(Directory directory) {
-//        clearFileScrollPane();
         DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
         getDirectoryFiles(sourceModel, directory, null);
     }
@@ -126,7 +125,7 @@ public class Renderer {
             DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) links.getModel();
             sourceModel.clear();
         }
-        PreviewPanelView.hideContent();
+        previewPanelView.hideContent();
     }
 
     /**

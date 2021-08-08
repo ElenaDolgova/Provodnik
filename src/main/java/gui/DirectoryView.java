@@ -6,26 +6,14 @@ import model.LocalFileDirectory;
 import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.*;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneLayout;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.filechooser.FileSystemView;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +24,7 @@ public class DirectoryView {
      * - Скролл с путем открытых директорий {@link #directoryScrollPane}
      * - Кнопка подключения/отключения от ftp сервера {@link #connectToFtpButton}
      */
-    private final JPanel mainDirectoryPane;
+    private final JSplitPane mainDirectoryPane;
     /**
      * Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков)
      */
@@ -56,10 +44,14 @@ public class DirectoryView {
         this.directoryScrollPane = initializeDirectoryScrollPane();
         this.connectToFtpButton = new JButton("Connect to ftp");
 
-        this.mainDirectoryPane = new JPanel(new BorderLayout());
-        this.mainDirectoryPane.add(this.connectToFtpButton, BorderLayout.SOUTH);
-        this.mainDirectoryPane.add(this.directoryScrollPane, BorderLayout.CENTER);
-        this.mainDirectoryPane.add(this.rootsScrollPane, BorderLayout.NORTH);
+        JPanel lowPanel = new JPanel(new BorderLayout());
+        lowPanel.add(this.connectToFtpButton, BorderLayout.SOUTH);
+        lowPanel.add(this.directoryScrollPane, BorderLayout.CENTER);
+        this.mainDirectoryPane = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                rootsScrollPane,
+                lowPanel
+        );
     }
 
     private JScrollPane initializeRootScrollPane() {
@@ -91,13 +83,12 @@ public class DirectoryView {
         return scrollPane;
     }
 
-    public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
+    public void init(Renderer renderer) {
         MouseListener mouseListener = getDirectoryListener(renderer);
         directoryScrollPane.getViewport().getView().addMouseListener(mouseListener);
         rootsScrollPane.getViewport().getView().addMouseListener(getRootDirectoryListener(renderer));
         connectToFtpButton.addActionListener(getFtpButtonMouseListener(renderer));
         renderer.updateFilesScrollPane(getLastDirectoryFromScroll(rootsScrollPane));
-        GLOBAL_FRAME.getContentPane().add(mainDirectoryPane, BorderLayout.WEST);
     }
 
     /**
@@ -152,17 +143,14 @@ public class DirectoryView {
 
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
         return e -> {
-            String ftpPath = JOptionPane.showInputDialog(connectToFtpButton,
-                    new String[]{"Формат: ftp://user:password@host:port"},
-                    "Введите данные подключения к ftp серверу",
-                    JOptionPane.QUESTION_MESSAGE
-            );
+            FtpServerOptionPane optionPane = new FtpServerOptionPane();
+            FtpServerOptionPane.FtpServerOption option = optionPane.showConfirmDialog(connectToFtpButton);
             SwingUtilities.invokeLater(() -> {
                 renderer.setSpinnerVisible(true);
                 new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() {
-                        tryToConnectToFtp(ftpPath, renderer);
+                        tryToConnectToFtp(option, renderer);
                         return null;
                     }
 
@@ -175,10 +163,10 @@ public class DirectoryView {
         };
     }
 
-    private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
+    private void tryToConnectToFtp(FtpServerOptionPane.FtpServerOption option, Renderer renderer) {
         try {
-            if (ftpPath != null && ftpPath.length() != 0) {
-                FTPClient ftpClient = createFtpClient(ftpPath);
+            if (option != null && option.getHost() != null && option.getHost().length() != 0) {
+                FTPClient ftpClient = createFtpClient(option);
                 renderer.clearFileScrollPane();
                 FtpFileDirectory directory = new FtpFileDirectory(ftpClient, "/", null);
                 getClearedDirectory(directoryScrollPane);
@@ -188,30 +176,25 @@ public class DirectoryView {
                 changeButtonActionListener(disconnectMouseListener(renderer));
             }
         } catch (UnknownHostException p) {
-            String ftpPathNew = JOptionPane.showInputDialog(connectToFtpButton,
-                    new String[]{"Извините, попробуйте снова", "Формат: ftp://user:password@host:port"},
-                    "Введите данные подключения к ftp серверу",
-                    JOptionPane.QUESTION_MESSAGE
-            );
-            tryToConnectToFtp(ftpPathNew, renderer);
+            FtpServerOptionPane optionPane = new FtpServerOptionPane();
+            tryToConnectToFtp(optionPane.showConfirmDialog(connectToFtpButton), renderer);
             p.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private FTPClient createFtpClient(String ftpHost) throws IOException {
-        FTPClient ftpClient = new FTPClient(); //ftp.bmc.com  ftp.efix.pl - картинка  normacs.ru - подпапки
-        // aux.detewe.ru с zip
-        // ftp://anonymous@ftp.bmc.com
-
+    private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
+        FTPClient ftpClient = new FTPClient();
         ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
         ftpClient.setAutodetectUTF8(true);
         ftpClient.enterLocalPassiveMode();
-
-        ftpHost = "aux.detewe.ru";
-        ftpClient.connect(ftpHost);
-        ftpClient.login("anonymous", "");
+        if (option.getPort() != null) {
+            ftpClient.connect(option.getHost(), option.getPort());
+        } else {
+            ftpClient.connect(option.getHost());
+        }
+        ftpClient.login(option.getLogin(), option.getPassword());
         return ftpClient;
     }
 
@@ -266,5 +249,9 @@ public class DirectoryView {
 
     public JScrollPane getScrollPane() {
         return directoryScrollPane;
+    }
+
+    public JSplitPane getMainDirectoryPane() {
+        return mainDirectoryPane;
     }
 }

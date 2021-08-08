@@ -31,13 +31,15 @@ public class FilesView {
     private final JTextField textField;
     private final JLabel spinner;
     private final ImageIcon folderIcon;
+    private final PreviewPanelView previewPanelView;
 
-    public FilesView() {
+    public FilesView(PreviewPanelView previewPanelView) {
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
         this.mainFileScrollPane = new JPanel(new BorderLayout());
         this.northPanel = new JPanel(new BorderLayout());
+        this.previewPanelView = previewPanelView;
 
         this.textField = new JTextField();
         this.spinner = new JLabel(
@@ -63,16 +65,15 @@ public class FilesView {
         this.folderIcon = folderIcon;
     }
 
-    public void init(JFrame GLOBAL_FRAME, Renderer renderer) {
+    public void init(Renderer renderer) {
         this.textField.addActionListener(getTextFiledListener(renderer));
-        GLOBAL_FRAME.getContentPane().add(mainFileScrollPane, BorderLayout.CENTER);
 
         DefaultListModel<Directory> defaultListModel = new DefaultListModel<>();
         JList<Directory> displayFiles = new JList<>(defaultListModel);
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesView.getMouseDisplayFilesListener(renderer));
-        displayFiles.addKeyListener(FilesView.DisplayFilesListener(renderer));
+        displayFiles.addMouseListener(getMouseDisplayFilesListener(renderer));
+        displayFiles.addKeyListener(DisplayFilesListener(renderer));
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -82,7 +83,7 @@ public class FilesView {
         };
     }
 
-    public static MouseAdapter getMouseDisplayFilesListener(Renderer renderer) {
+    public MouseAdapter getMouseDisplayFilesListener(Renderer renderer) {
         // тест кейс:
         // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
         // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
@@ -96,7 +97,7 @@ public class FilesView {
         };
     }
 
-    public static KeyListener DisplayFilesListener(Renderer renderer) {
+    public KeyListener DisplayFilesListener(Renderer renderer) {
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent keyEvent) {
@@ -125,8 +126,8 @@ public class FilesView {
      * @param inputEvent выбранный элемент файлового скролла
      * @param renderer
      */
-    private static void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
-        PreviewPanelView.hideContent();
+    private void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
+        previewPanelView.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();
         Directory displayFiles = source.getSelectedValue();
         // todо тест кейса на добавление не повторяющихся файлов
@@ -207,5 +208,9 @@ public class FilesView {
 
     public JLabel getSpinner() {
         return spinner;
+    }
+
+    public JPanel getMainFileScrollPane() {
+        return mainFileScrollPane;
     }
 }
