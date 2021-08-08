@@ -47,7 +47,7 @@ public class ZipFileDirectory implements Directory {
                     })
                     .filter(path -> {
                         Path parent = path.getParent();
-                        // zip на macos создаются с доп дирекотрий корня
+                        // zip на macos создаются с доп дирекотрией корня
                         return parent != null && !path.startsWith("/__MACOSX");
                     })
                     .map(path -> new ZipFileDirectory(path, fs, false))

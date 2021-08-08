@@ -2,16 +2,16 @@ package gui;
 
 import model.Directory;
 import model.FtpFileDirectory;
+import model.FtpServerOptionPane;
 import model.LocalFileDirectory;
-import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.*;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
@@ -94,15 +94,10 @@ public class DirectoryView {
     /**
      * Метод вызывается при клике на определенный элемент на панели с директориями.
      * При это если пользователь нажал на не листовую директорию,
-     * то директории перестают отображаться ровно до выбранной и на панели с просмоторщиком файлов начинают
-     * отображаться файлы, выбранной директории.
+     * то директории перестают отображаться ровно до выбранной, и на панели с просмоторщиком файлов начинают
+     * отображаться файлы выбранной директории.
      */
     private MouseAdapter getDirectoryListener(Renderer renderer) {
-        // тест кейс:
-        // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
-        // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
-        // 3. Зашли в поддерево, вышли из него -> зашли в более глубокое
-
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent inputEvent) {
                 if (inputEvent.getClickCount() == 2) {
@@ -131,8 +126,6 @@ public class DirectoryView {
 
     /**
      * Удаляет листовую директорию
-     *
-     * @param renderer
      */
     public static void removeLastElementFromDirectory(Renderer renderer) {
         //схлопываем директорию до нажатой
@@ -141,6 +134,9 @@ public class DirectoryView {
         renderer.updateFilesScrollPane(directory);
     }
 
+    /**
+     * Листенер для кнопки подключения к ftp серверу
+     */
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
         return e -> {
             FtpServerOptionPane optionPane = new FtpServerOptionPane();
@@ -186,7 +182,6 @@ public class DirectoryView {
 
     private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
         FTPClient ftpClient = new FTPClient();
-        ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
         ftpClient.setAutodetectUTF8(true);
         ftpClient.enterLocalPassiveMode();
         if (option.getPort() != null) {
@@ -236,19 +231,24 @@ public class DirectoryView {
         return sourceModel;
     }
 
+    @Nullable
     public Directory getLastDirectoryFromScroll(JScrollPane scrollPane) {
         JList<Directory> displayDirectory = (JList<Directory>) scrollPane.getViewport().getView();
         if (displayDirectory != null) {
             DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
-            if (sourceModel != null) {
+            if (sourceModel != null && sourceModel.getSize() != 0) {
                 return sourceModel.lastElement();
             }
         }
         return null;
     }
 
-    public JScrollPane getScrollPane() {
+    public JScrollPane getDirectoryScrollPane() {
         return directoryScrollPane;
+    }
+
+    public JScrollPane getRootsScrollPane() {
+        return rootsScrollPane;
     }
 
     public JSplitPane getMainDirectoryPane() {

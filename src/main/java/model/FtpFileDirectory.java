@@ -19,19 +19,30 @@ import java.util.function.Consumer;
 
 public class FtpFileDirectory implements Directory {
     private static final int FTP_BATCH_SIZE = 300;
+    /**
+     * Закешированные скачанные zip-архивы с ftp-серверов.
+     * Если пользователь решил заново открыть уже до этого скачанный файл, то качать заново его не придется,
+     * он будет взят из кеша.
+     */
     private static final Map<String, File> CACHED_FILES = new HashMap<>();
 
     private final FTPClient ftpClient;
     private final FTPFile ftpFile;
     private final String path;
 
-    //https://www.mmnt.net/
     public FtpFileDirectory(FTPClient ftpClient, String path, FTPFile ftpFile) {
         this.ftpClient = ftpClient;
         this.path = path;
         this.ftpFile = ftpFile;
     }
 
+    /**
+     * На ftp серверах за списком файлом ходим побатчево и отрисовываем переданными батчами.
+     * Делается для того, чтобы пользователь долго не ждал отрисовки, когда размер директории достаточно большой
+     *
+     * @param batchAction консьюмер, обрабатывающий вернувшиеся батчи файлов из текущей директории
+     * @param ext         расширение файлов, которые нужно вернуть
+     */
     @Override
     public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
         try {
@@ -118,7 +129,6 @@ public class FtpFileDirectory implements Directory {
 
     @Override
     public String getName() {
-        //todo кодировка на кириллицу
         if (ftpFile == null) {
             return path;
         }
@@ -149,6 +159,9 @@ public class FtpFileDirectory implements Directory {
         }
     }
 
+    /**
+     * Очистка кеша. Например, после отключения от ftp сервера
+     */
     public static void clearCache() {
         CACHED_FILES.clear();
     }

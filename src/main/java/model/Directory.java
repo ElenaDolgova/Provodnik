@@ -26,10 +26,11 @@ public interface Directory {
     void processFile(Consumer<InputStream> consumer) throws FileProcessingException;
 
     /**
-     * Метод проходится по директории и достают из нее все элементы. После batchAction обрабатывает эти элементы.
+     * Метод проходится по директории и достаёт из нее все элементы. После batchAction обрабатывает эти элементы.
      * Если в метод передан ext, то возвращаются файлы, удовлетворяющие переданному ext расширению
+     *
      * @param batchAction консьюмер, обрабатывающий вернувшиеся батчи файлов из текущей директории
-     * @param ext расширение файлов, которые нужно вернуть
+     * @param ext         расширение файлов, которые нужно вернуть
      * @throws FileProcessingException
      */
     void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) throws FileProcessingException;
@@ -64,7 +65,7 @@ public interface Directory {
 
     static boolean isZip(Path path) {
         String probeContentType = Directory.getProbeContentType(path);
-        if (probeContentType == null){
+        if (probeContentType == null) {
             return false;
         }
         return probeContentType.contains("zip");

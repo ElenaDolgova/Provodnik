@@ -1,4 +1,4 @@
-package gui;
+package model;
 
 import org.jetbrains.annotations.Nullable;
 import util.SpringUtilities;

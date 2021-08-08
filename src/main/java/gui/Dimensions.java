@@ -1,10 +1,9 @@
 package gui;
 
 /**
- * Класс с основными размерами оконо
+ * Класс с основными размерами окон
  */
 public final class Dimensions {
-    // todo расширять окошки внутренние
     /**
      * Ширина основного окна
      */
@@ -13,22 +12,6 @@ public final class Dimensions {
      * Высота основного окна
      */
     public static final int MAIN_HEIGHT = 600;
-    /**
-     * Ширина окна панели с директориями
-     */
-    public static final int DIRECTORY_SCROLL_PANE_WIDTH = MAIN_WIDTH / 6;
-    /**
-     * Высота окна панели с директориями
-     */
-    public static final int DIRECTORY_SCROLL_PANE_HEIGHT = MAIN_HEIGHT - 10;
-    /**
-     * Ширина окна панели с файлами
-     */
-    public static final int FILE_SCROLL_PANE_WIDTH = MAIN_WIDTH / 6 * 2;
-    /**
-     * Высота окна панели с файлами
-     */
-    public static final int FILE_SCROLL_PANE_HEIGHT = MAIN_HEIGHT - 10;
     /**
      * Ширина окна панели с превью
      */

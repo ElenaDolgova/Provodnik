@@ -22,29 +22,28 @@ public class Renderer {
     /**
      * Метод добавляет на таб с директориями новый узел и обновляет список файлов каталога
      *
-     * @param newDirectory директория, в которой нужно обновить отображения файлов
+     * @param directory директория, в которой нужно обновить отображения файлов
      */
-    public void addNewDirectory(Directory newDirectory) {
-        JList<Directory> displayDirectory = (JList<Directory>) directoryView.getScrollPane().getViewport().getView();
+    public void addNewDirectory(Directory directory) {
+        JList<Directory> displayDirectory = (JList<Directory>) directoryView.getDirectoryScrollPane().getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
 
-        if (sourceModel.getSize() == 0 || !sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
+        if (sourceModel.getSize() == 0 || !sourceModel.get(sourceModel.getSize() - 1).equals(directory)) {
             // добавляем новую директорию на панель с директориями
-            sourceModel.addElement(newDirectory);
+            sourceModel.addElement(directory);
             displayDirectory.setSelectedIndex(sourceModel.getSize() - 1);
             // обновляем панельку с фалами
-            updateFilesScrollPane(newDirectory);
+            updateFilesScrollPane(directory);
         }
     }
 
     /**
-     * Из дерева директорий нельзя убрать рут
+     * Чистим дерево директорий на скролле с директориями до переданного номера to
      *
      * @param to - до какого номера в дереве директорий убирать директории
-     * @return последний оставшийся елемент в диреткории
      */
     public void squeezeDirectories(int to) {
-        DefaultListModel<Directory> sourceModel = getModel(directoryView.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(directoryView.getDirectoryScrollPane());
         for (int i = sourceModel.getSize() - 1; i > to; --i) {
             sourceModel.remove(i);
         }
@@ -57,7 +56,7 @@ public class Renderer {
      * @return последний оставшийся елемент в диреткории
      */
     public Directory squeezeDirectoriesByOne() {
-        DefaultListModel<Directory> sourceModel = getModel(directoryView.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(directoryView.getDirectoryScrollPane());
         if (sourceModel.getSize() > 1) {
             sourceModel.remove(sourceModel.getSize() - 1);
         }
@@ -67,31 +66,41 @@ public class Renderer {
     /**
      * Метод обновляет файлы для текущей диретории
      *
-     * @param directory Дирктория, файлы для которой нужно обновить
+     * @param directory Директория, файлы для которой нужно обновить
      */
     public void updateFilesScrollPane(Directory directory) {
         DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
-        getDirectoryFiles(sourceModel, directory, null);
+        updateFiles(sourceModel, directory, null);
     }
 
     /**
-     * Метод обнолвяет файлы самой послденей директории с учетом фильтра по расширению
+     * Метод обнолвяет файлы самой последней директории с учетом фильтра по расширению
      *
      * @param ext Расширение, по которому нужно пофильтровать файлы
      */
     public void updateFilesScrollPane(String ext) {
         DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
-        Directory lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getScrollPane());
-        getDirectoryFiles(sourceModel, lastDirectory, ext);
+        Directory lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getDirectoryScrollPane());
+        if (lastDirectory == null) {
+            lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getRootsScrollPane());
+        }
+        updateFiles(sourceModel, lastDirectory, ext);
     }
 
+
     /**
-     * Метод возвращает список файлов текущей директории
+     * Метода обновляет файлы на табе с файловым скролом.
+     * При этом во время загрузки запускается процесс отрисовки спинера, если обновление файла будет занимать долгое время.
+     * Например, когда происходит подгрузка файлов с удаленного сервера
+     *
+     * @param resource  обноляемый ресур файлового скролла
+     * @param directory директория, из которй берутся файлы
+     * @param ext       фильтр по расширению
      */
-    private void getDirectoryFiles(DefaultListModel<Directory> list, Directory directory, String ext) {
+    private void updateFiles(DefaultListModel<Directory> resource, Directory directory, String ext) {
         SwingUtilities.invokeLater(() -> setSpinnerVisible(true));
         SwingUtilities.invokeLater(() -> {
-            list.clear();
+            resource.clear();
             new SwingWorker<Void, Directory>() {
                 @Override
                 protected Void doInBackground() {
@@ -105,7 +114,7 @@ public class Renderer {
 
                 @Override
                 protected void process(List<Directory> chunks) {
-                    list.addAll(chunks);
+                    resource.addAll(chunks);
                 }
 
                 @Override
@@ -130,8 +139,6 @@ public class Renderer {
 
     /**
      * Обновляется панель с отображением текстового файла или изображения
-     *
-     * @param displayFiles
      */
     public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {

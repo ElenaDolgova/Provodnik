@@ -7,7 +7,6 @@ import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -97,6 +96,9 @@ public class FilesView {
         };
     }
 
+    /**
+     * Листенер для хождения по файлам в файловом скролле
+     */
     public KeyListener DisplayFilesListener(Renderer renderer) {
         return new KeyListener() {
             @Override
@@ -124,7 +126,6 @@ public class FilesView {
      * выводит превью файла на панель с превью
      *
      * @param inputEvent выбранный элемент файлового скролла
-     * @param renderer
      */
     private void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
         previewPanelView.hideContent();
