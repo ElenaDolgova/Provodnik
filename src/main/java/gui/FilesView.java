@@ -3,6 +3,7 @@ package gui;
 import exception.FileProcessingException;
 import model.Directory;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -16,10 +17,9 @@ import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
@@ -40,13 +40,12 @@ public class FilesView {
         this.northPanel = new JPanel(new BorderLayout());
 
         this.textField = new JTextField();
-//        this.spinner = new JLabel(
-//                new ImageIcon(
-//                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
-//                                .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
-//                )
-//        );
-        this.spinner = new JLabel();
+        this.spinner = new JLabel(
+                new ImageIcon(
+                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
+                                .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
+                )
+        );
         spinner.setVisible(false);
         this.northPanel.add(this.spinner, BorderLayout.EAST);
         this.northPanel.add(this.textField, BorderLayout.CENTER);
@@ -55,12 +54,12 @@ public class FilesView {
         this.mainFileScrollPane.add(northPanel, BorderLayout.NORTH);
 
         ImageIcon folderIcon = null;
-//        try {
-////            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
-////            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
+            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.folderIcon = folderIcon;
     }
 
@@ -122,6 +121,7 @@ public class FilesView {
      * Метод отрисовывает новую директорию на скролле с директориями и заполняет файлами файловый скролл
      * ИЛИ
      * выводит превью файла на панель с превью
+     *
      * @param inputEvent выбранный элемент файлового скролла
      * @param renderer
      */

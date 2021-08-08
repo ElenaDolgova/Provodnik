@@ -71,16 +71,15 @@ public class FtpFileDirectory implements Directory {
     @Override
     public Directory createDirectory() {
         if (Directory.isZip(getPath())) {
-            File file = getFileFromCacheOrDownload();
             try {
+                File file = getFileFromCacheOrDownload();
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
-                // тут есть фишка с null на path
                 return new ZipFileDirectory(file.toPath(), newFileSystem, getName(), true);
             } catch (IOException e) {
                 throw new FileProcessingException("Unable to create Zip filesystem", e);
             }
         }
-        return new FtpFileDirectory(ftpClient, path, ftpFile);
+        return this;
     }
 
     /**
@@ -148,6 +147,10 @@ public class FtpFileDirectory implements Directory {
         } else {
             return path + "/" + name;
         }
+    }
+
+    public static void clearCache() {
+        CACHED_FILES.clear();
     }
 
     @Override

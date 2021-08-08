@@ -50,8 +50,7 @@ public class LocalFileDirectory implements Directory {
 
     @Override
     public Directory createDirectory() {
-        // todo
-        return new LocalFileDirectory(fs, path);
+        return this;
     }
 
     @Override

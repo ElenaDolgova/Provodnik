@@ -67,22 +67,16 @@ public class ZipFileDirectory implements Directory {
     @Override
     public Directory createDirectory() {
         if (isZip(path)) {
-            FileSystem newFileSystem;
             try {
-                if (isFirstZip) {
-                    // создается просто самый первый zip
-                    newFileSystem = FileSystems.newFileSystem(path, null);
-                } else {
-                    //  zip внутри zip Создается новая файловая подсистема
-                    newFileSystem = FileSystems.newFileSystem(fs.getPath(path.toString()), null);
+                if (!isFirstZip) {
+                    FileSystem newFileSystem = FileSystems.newFileSystem(fs.getPath(path.toString()), null);
+                    return new ZipFileDirectory(path, newFileSystem, false);
                 }
             } catch (IOException e) {
                 throw new FileProcessingException("Can't create file system on zip", e);
             }
-            return new ZipFileDirectory(path, newFileSystem, isFirstZip);
         }
-        // когда директория внутри zip
-        return new ZipFileDirectory(path, fs, isFirstZip);
+        return this;
     }
 
     @Override

@@ -178,19 +178,7 @@ public class DirectoryView {
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
         try {
             if (ftpPath != null && ftpPath.length() != 0) {
-                FTPClient ftpClient = new FTPClient(); //ftp.bmc.com  ftp.efix.pl - картинка  normacs.ru - подпапки
-                // aux.detewe.ru с zip
-                // ftp://anonymous@ftp.bmc.com
-
-                ftpClient.addProtocolCommandListener(
-                        new PrintCommandListener(new PrintWriter(System.out), true)
-                );
-                ftpClient.setAutodetectUTF8(true);
-
-                ftpPath = "aux.detewe.ru";
-                ftpClient.connect(ftpPath);
-                ftpClient.enterLocalPassiveMode();
-                ftpClient.login("anonymous", "");
+                FTPClient ftpClient = createFtpClient(ftpPath);
                 renderer.clearFileScrollPane();
                 FtpFileDirectory directory = new FtpFileDirectory(ftpClient, "/", null);
                 getClearedDirectory(directoryScrollPane);
@@ -212,17 +200,32 @@ public class DirectoryView {
         }
     }
 
+    private FTPClient createFtpClient(String ftpHost) throws IOException {
+        FTPClient ftpClient = new FTPClient(); //ftp.bmc.com  ftp.efix.pl - картинка  normacs.ru - подпапки
+        // aux.detewe.ru с zip
+        // ftp://anonymous@ftp.bmc.com
+
+        ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
+        ftpClient.setAutodetectUTF8(true);
+        ftpClient.enterLocalPassiveMode();
+
+        ftpHost = "aux.detewe.ru";
+        ftpClient.connect(ftpHost);
+        ftpClient.login("anonymous", "");
+        return ftpClient;
+    }
+
     /**
      * Действие, отвечающие за кнопку отключение от ftp сервера и возвращение в локальную рутовую директорию
      */
     private ActionListener disconnectMouseListener(Renderer renderer) {
         return e -> {
+            FtpFileDirectory.clearCache();
             renderer.clearFileScrollPane();
             List<Directory> allRootDirectories = getAllRootDirectories();
             getClearedDirectory(rootsScrollPane).addAll(allRootDirectories);
             JList<Directory> directoryJList = (JList<Directory>) rootsScrollPane.getViewport().getView();
             directoryJList.setSelectedIndex(allRootDirectories.size() - 1);
-
             getClearedDirectory(directoryScrollPane);
 
             connectToFtpButton.setText("Connect to Ftp");
