@@ -1,15 +1,14 @@
+package gui;
+
+import exception.FileProcessingException;
+import model.Directory;
+
 import javax.swing.*;
-import java.io.IOException;
 import java.util.List;
 
 public class Renderer {
     private final DirectoryScrollPane directoryScrollPane;
     private final FilesScrollPane filesScrollPane;
-
-    public PreviewPanel getPreviewPanel() {
-        return previewPanel;
-    }
-
     private final PreviewPanel previewPanel;
 
     public Renderer(DirectoryScrollPane directoryScrollPane,
@@ -26,14 +25,44 @@ public class Renderer {
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
     public void addNewDirectory(Directory newDirectory) {
-        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+        JList<Directory> displayDirectory = (JList<Directory>) directoryScrollPane.getScrollPane().getViewport().getView();
+        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
 
         if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями
             sourceModel.addElement(newDirectory);
+            displayDirectory.setSelectedIndex(sourceModel.getSize() - 1);
             // обновляем панельку с фалами
             updateFilesScrollPane(newDirectory);
         }
+    }
+
+    /**
+     * Из дерева директорий нельзя убрать рут
+     *
+     * @param to - до какого номера в дереве директорий убирать директории
+     * @return последний оставшийся елемент в диреткории
+     */
+    public Directory squeezeDirectories(int to) {
+        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+        for (int i = sourceModel.getSize() - 1; i > to && i >= 1; --i) {
+            sourceModel.remove(i);
+        }
+        return sourceModel.get(sourceModel.getSize() - 1);
+    }
+
+    /**
+     * Метод убирает листовой елемент из скролла с директориями
+     * Из дерева директорий нельзя убрать рут
+     *
+     * @return последний оставшийся елемент в диреткории
+     */
+    public Directory squeezeDirectoriesByOne() {
+        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+        if (sourceModel.getSize() > 1) {
+            sourceModel.remove(sourceModel.getSize() - 1);
+        }
+        return sourceModel.get(sourceModel.getSize() - 1);
     }
 
     /**
@@ -43,7 +72,7 @@ public class Renderer {
      */
     public void updateFilesScrollPane(Directory directory) {
         clearFileScrollPane();
-        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
         getDirectoryFiles(sourceModel, directory, null);
     }
 
@@ -53,7 +82,7 @@ public class Renderer {
      * @param ext Расширение, по которому нужно пофильтровать файлы
      */
     public void updateFilesScrollPane(String ext) {
-        DefaultListModel<Link> sourceModel = getModel(filesScrollPane.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesScrollPane.getScrollPane());
         Directory lastDirectory = directoryScrollPane.getLastDirectoryFromScroll();
         getDirectoryFiles(sourceModel, lastDirectory, ext);
     }
@@ -61,25 +90,29 @@ public class Renderer {
     /**
      * Метод возвращает список файлов текущей директории
      */
-    private void getDirectoryFiles(DefaultListModel<Link> list, Directory directory, String ext) {
-        SwingUtilities.invokeLater(() -> setThrobberVisible(true));
+    private void getDirectoryFiles(DefaultListModel<Directory> list, Directory directory, String ext) {
+        SwingUtilities.invokeLater(() -> setSpinnerVisible(true));
         SwingUtilities.invokeLater(() -> {
             list.clear();
-            new SwingWorker<Void, Link>() {
+            new SwingWorker<Void, Directory>() {
                 @Override
                 protected Void doInBackground() {
-                    directory.getFiles(it -> it.forEach(this::publish), ext);
+                    try {
+                        directory.getFiles(it -> it.forEach(this::publish), ext);
+                    } catch (FileProcessingException e) {
+                        showWarningPane(e);
+                    }
                     return null;
                 }
 
                 @Override
-                protected void process(List<Link> chunks) {
+                protected void process(List<Directory> chunks) {
                     list.addAll(chunks);
                 }
 
                 @Override
                 protected void done() {
-                    SwingUtilities.invokeLater(() -> setThrobberVisible(false));
+                    SwingUtilities.invokeLater(() -> setSpinnerVisible(false));
                 }
             }.execute();
         });
@@ -89,9 +122,9 @@ public class Renderer {
      * Очищаем панель с файлами и скрываем превью информацию
      */
     public void clearFileScrollPane() {
-        JList<Link> links = (JList<Link>) this.filesScrollPane.getScrollPane().getViewport().getView();
+        JList<Directory> links = (JList<Directory>) this.filesScrollPane.getScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
-            DefaultListModel<Link> sourceModel = (DefaultListModel<Link>) links.getModel();
+            DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) links.getModel();
             sourceModel.clear();
         }
         PreviewPanel.hideContent();
@@ -102,10 +135,10 @@ public class Renderer {
      *
      * @param displayFiles
      */
-    public void updatePreviewPanel(String probeContentType, Link displayFiles) {
+    public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
             displayFiles.processFile(it -> previewPanel.update(probeContentType, it, this));
-        } catch (IOException e) {
+        } catch (exception.FileProcessingException e) {
             e.printStackTrace();
         }
     }
@@ -115,7 +148,15 @@ public class Renderer {
         return (DefaultListModel<T>) displayDirectory.getModel();
     }
 
-    public void setThrobberVisible(boolean visible) {
+    public void setSpinnerVisible(boolean visible) {
         filesScrollPane.getSpinner().setVisible(visible);
+    }
+
+    public void showWarningPane(FileProcessingException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(filesScrollPane.getScrollPane(),
+                new String[]{e.getMessage()},
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }

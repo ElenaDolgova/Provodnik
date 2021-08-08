@@ -1,3 +1,5 @@
+package gui;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -8,10 +10,6 @@ public class PreviewPanel extends Component {
     private static final int MAX_TEXT_LINES = 20;
     private final static JPanel jPanel = new JPanel(new GridBagLayout());
     private final static JLabel image = new JLabel();
-
-    public JTextArea getTextArea() {
-        return textArea;
-    }
 
     private final static JTextArea textArea = new JTextArea(7, 40);
 
@@ -39,13 +37,13 @@ public class PreviewPanel extends Component {
         if (probeContentType == null) {
             return;
         }
-        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(true));
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
         if (probeContentType.contains("image")) {
             updateImage(in);
         } else if (probeContentType.contains("text")) {
             updateTxt(in);
         }
-        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
     }
 
     private void updateImage(InputStream in) {

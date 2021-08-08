@@ -1,8 +1,28 @@
-import javax.swing.*;
-import java.awt.*;
+import gui.Dimensions;
+import gui.DirectoryScrollPane;
+import gui.FilesScrollPane;
+import gui.PreviewPanel;
+import gui.Renderer;
+
+import javax.swing.JFrame;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
+// todo
+// разобраться с рутовыми директориями в windows
+// разобраться с ftp подключением на windows
+// перенести gif из ресурсов
+// пароль и логин на ftp
+// пароль и логин на zip
+// расширить окошки внутренние
+// кодировка
+// добавить последнюю посещенную директорию на скролл с файлами
+// подсвечивать рут, в котором находимся
+// тесты
+// превью на текстовые файлы чтобы можно было мотать
+// отрисовка pdf и xml файлов
 public class Main {
     public static void main(String[] args) {
         JFrame.setDefaultLookAndFeelDecorated(true);
@@ -20,7 +40,7 @@ public class Main {
         final FilesScrollPane FILES_SCROLL_PANE = new FilesScrollPane();
         final PreviewPanel PREVIEW_PANEL = new PreviewPanel();
 
-        Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
+        gui.Renderer renderer = new Renderer(DIRECTORY_SCROLL_PANE, FILES_SCROLL_PANE, PREVIEW_PANEL);
         FILES_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         DIRECTORY_SCROLL_PANE.init(GLOBAL_FRAME, renderer);
         PREVIEW_PANEL.init(GLOBAL_FRAME);

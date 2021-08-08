@@ -1,3 +1,8 @@
+package gui;
+
+import model.Directory;
+import model.FtpFileDirectory;
+import model.LocalFileDirectory;
 import org.apache.commons.net.ftp.*;
 
 import javax.swing.DefaultListModel;
@@ -13,10 +18,7 @@ import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -27,9 +29,9 @@ import java.util.List;
 public class DirectoryScrollPane {
     /**
      * Самая левая панель, на которой расположены сверху вниз:
-     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link rootsScrollPane}
-     * - Скролл с путем открытых директорий {@link directoryScrollPane}
-     * - Кнопка подключения/отключения от ftp сервера {@link connectToFtpButton}
+     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link #rootsScrollPane}
+     * - Скролл с путем открытых директорий {@link #directoryScrollPane}
+     * - Кнопка подключения/отключения от ftp сервера {@link #connectToFtpButton}
      */
     private final JPanel mainDirectoryPane;
     /**
@@ -72,7 +74,7 @@ public class DirectoryScrollPane {
         List<Directory> allRootDirectory = new ArrayList<>();
         for (File defPath : FileSystemView.getFileSystemView().getRoots()) {
             FileSystem fs = defPath.toPath().getFileSystem();
-            allRootDirectory.add(new LocalDirectory(fs, defPath.toPath()));
+            allRootDirectory.add(new LocalFileDirectory(fs, defPath.toPath()));
         }
         return allRootDirectory;
     }
@@ -111,17 +113,36 @@ public class DirectoryScrollPane {
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    JList<Directory> source = (JList<Directory>) e.getSource();
-                    // обновляем содержимое панели с файлами
-                    renderer.updateFilesScrollPane(source.getSelectedValue());
-                    //схлопываем директорию до нажатой
-                    DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) source.getModel();
-                    for (int i = sourceModel.getSize() - 1; i > source.getSelectedIndex(); --i) {
-                        sourceModel.remove(i);
-                    }
+                    removeElementsToSelected(e, renderer);
                 }
             }
         };
+    }
+
+    /**
+     * Удаляет директории до выбранного элемента
+     *
+     * @param inputEvent - выбранный элемент
+     * @param renderer
+     */
+    public static void removeElementsToSelected(InputEvent inputEvent, Renderer renderer) {
+        JList<Directory> source = (JList<Directory>) inputEvent.getSource();
+        // обновляем содержимое панели с файлами
+        renderer.updateFilesScrollPane(source.getSelectedValue());
+        //схлопываем директорию до нажатой
+        renderer.squeezeDirectories(source.getSelectedIndex());
+    }
+
+    /**
+     * Удаляет листовую директорию
+     *
+     * @param renderer
+     */
+    public static void removeLastElementFromDirectory(Renderer renderer) {
+        //схлопываем директорию до нажатой
+        Directory directory = renderer.squeezeDirectoriesByOne();
+        // обновляем содержимое панели с файлами
+        renderer.updateFilesScrollPane(directory);
     }
 
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
@@ -132,7 +153,7 @@ public class DirectoryScrollPane {
                     JOptionPane.QUESTION_MESSAGE
             );
             SwingUtilities.invokeLater(() -> {
-                renderer.setThrobberVisible(true);
+                renderer.setSpinnerVisible(true);
                 new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() {
@@ -142,7 +163,7 @@ public class DirectoryScrollPane {
 
                     @Override
                     protected void done() {
-                        SwingUtilities.invokeLater(() -> renderer.setThrobberVisible(false));
+                        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
                     }
                 }.execute();
             });
@@ -152,14 +173,14 @@ public class DirectoryScrollPane {
     private void tryToConnectToFtp(String ftpPath, Renderer renderer) {
         try {
             if (ftpPath != null && ftpPath.length() != 0) {
-                FTPClient f = new FTPClient(); //ftp.bmc.com  ftp.efix.pl - картинка  normacs.ru - подпапки
+                FTPClient ftpClient = new FTPClient(); //ftp.bmc.com  ftp.efix.pl - картинка  normacs.ru - подпапки
                 // aux.detewe.ru с zip
                 // ftp://anonymous@ftp.bmc.com
                 ftpPath = "aux.detewe.ru";
-                f.connect(ftpPath);
-                f.login("anonymous", "");
+                ftpClient.connect(ftpPath);
+                ftpClient.login("anonymous", "");
                 renderer.clearFileScrollPane();
-                FTPDirectory directory = new FTPDirectory(f, "/", "/");
+                FtpFileDirectory directory = new FtpFileDirectory(ftpClient, "/", null);
                 getClearedDirectory(directoryScrollPane).addElement(directory);
                 renderer.updateFilesScrollPane(directory);
                 connectToFtpButton.setText("Disconnect");
