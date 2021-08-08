@@ -25,11 +25,13 @@ public class Renderer {
      * @param newDirectory директория, в которой нужно обновить отображения файлов
      */
     public void addNewDirectory(Directory newDirectory) {
-        DefaultListModel<Directory> sourceModel = getModel(directoryScrollPane.getScrollPane());
+        JList<Directory> displayDirectory = (JList<Directory>) directoryScrollPane.getScrollPane().getViewport().getView();
+        DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
 
         if (!sourceModel.get(sourceModel.getSize() - 1).equals(newDirectory)) {
             // добавляем новую директорию на панель с директориями
             sourceModel.addElement(newDirectory);
+            displayDirectory.setSelectedIndex(sourceModel.getSize() - 1);
             // обновляем панельку с фалами
             updateFilesScrollPane(newDirectory);
         }

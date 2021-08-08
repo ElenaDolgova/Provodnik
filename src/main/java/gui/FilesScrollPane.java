@@ -74,8 +74,8 @@ public class FilesScrollPane {
         JList<Directory> displayFiles = new JList<>(defaultListModel);
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
-        displayFiles.addMouseListener(FilesScrollPane.getMouseListener(renderer));
-        displayFiles.addKeyListener(FilesScrollPane.getKeyListener(renderer));
+        displayFiles.addMouseListener(FilesScrollPane.getMouseDisplayFilesListener(renderer));
+        displayFiles.addKeyListener(FilesScrollPane.DisplayFilesListener(renderer));
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -85,7 +85,7 @@ public class FilesScrollPane {
         };
     }
 
-    public static MouseAdapter getMouseListener(Renderer renderer) {
+    public static MouseAdapter getMouseDisplayFilesListener(Renderer renderer) {
         // тест кейс:
         // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
         // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
@@ -99,7 +99,7 @@ public class FilesScrollPane {
         };
     }
 
-    public static KeyListener getKeyListener(Renderer renderer) {
+    public static KeyListener DisplayFilesListener(Renderer renderer) {
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent keyEvent) {
@@ -120,6 +120,13 @@ public class FilesScrollPane {
         };
     }
 
+    /**
+     * Метод отрисовывает новую директорию на скролле с директориями и заполняет файлами файловый скролл
+     * ИЛИ
+     * выводит превью файла на панель с превью
+     * @param inputEvent выбранный элемент файлового скролла
+     * @param renderer
+     */
     private static void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
         PreviewPanel.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();

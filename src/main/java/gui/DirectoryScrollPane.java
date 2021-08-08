@@ -122,11 +122,11 @@ public class DirectoryScrollPane {
     /**
      * Удаляет директории до выбранного элемента
      *
-     * @param e - выбранный элемент
-     * @param renderer отрисовщик
+     * @param inputEvent - выбранный элемент
+     * @param renderer
      */
-    public static void removeElementsToSelected(InputEvent e, Renderer renderer) {
-        JList<Directory> source = (JList<Directory>) e.getSource();
+    public static void removeElementsToSelected(InputEvent inputEvent, Renderer renderer) {
+        JList<Directory> source = (JList<Directory>) inputEvent.getSource();
         // обновляем содержимое панели с файлами
         renderer.updateFilesScrollPane(source.getSelectedValue());
         //схлопываем директорию до нажатой
@@ -136,7 +136,7 @@ public class DirectoryScrollPane {
     /**
      * Удаляет листовую директорию
      *
-     * @param renderer отрисовщик
+     * @param renderer
      */
     public static void removeLastElementFromDirectory(Renderer renderer) {
         //схлопываем директорию до нажатой
