@@ -83,10 +83,6 @@ public class FilesView {
     }
 
     public MouseAdapter getMouseDisplayFilesListener(Renderer renderer) {
-        // тест кейс:
-        // 1. нажимаем на директорию в середине и у нас удаляется хвост (причем, чтобы память не текла, надо еще удалть ссылки на обхекты)
-        // 2. нажимаем на последнюю директорию и ничего не меняется И директории не перестраиваются.
-        // 3. Зашли в поддерево, вышли из него -> зашли в более глубокое
         return new MouseAdapter() {
             public void mouseClicked(MouseEvent mouseEvent) {
                 if (mouseEvent.getClickCount() == 2) {
@@ -131,8 +127,6 @@ public class FilesView {
         previewPanelView.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();
         Directory displayFiles = source.getSelectedValue();
-        // todо тест кейса на добавление не повторяющихся файлов
-        // тест на добавление только нового! файлов в директорию
 
         SwingUtilities.invokeLater(() -> {
             renderer.setSpinnerVisible(true);
