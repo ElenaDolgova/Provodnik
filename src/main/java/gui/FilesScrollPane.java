@@ -45,7 +45,7 @@ public class FilesScrollPane {
         this.textField = new JTextField();
         this.spinner = new JLabel(
                 new ImageIcon(
-                        new ImageIcon(getClass().getClassLoader().getResource("loading.gif"))
+                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
                                 .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
                 )
         );
