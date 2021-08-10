@@ -4,6 +4,7 @@ import model.Directory;
 import model.FtpFileDirectory;
 import model.FtpServerOptionPane;
 import model.LocalFileDirectory;
+import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
@@ -172,26 +175,38 @@ public class DirectoryView {
                 connectToFtpButton.setText("Disconnect");
                 changeButtonActionListener(disconnectMouseListener(renderer));
             }
-        } catch (UnknownHostException p) {
-            FtpServerOptionPane optionPane = new FtpServerOptionPane();
-            tryToConnectToFtp(optionPane.showConfirmDialog(connectToFtpButton,
-                    "There is invalid connect data to ftp server. Try again"), renderer);
-            p.printStackTrace();
+        } catch (UnknownHostException e) {
+            showErrorMessage("Invalid host, try again", e);
+        } catch (NumberFormatException e) {
+            showErrorMessage("Invalid port", e);
+        } catch (ConnectException e) {
+            showErrorMessage(e.getMessage(), e);
         } catch (IOException e) {
-            e.printStackTrace();
+            showErrorMessage("Unknown error, try later", e);
         }
+    }
+
+    private void showErrorMessage(String message, Exception e) {
+        JOptionPane optionPane = new JOptionPane(message, JOptionPane.ERROR_MESSAGE);
+        JDialog dialog = optionPane.createDialog("Error while connecting");
+        dialog.setAlwaysOnTop(true);
+        dialog.setVisible(true);
+        e.printStackTrace();
     }
 
     private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
         FTPClient ftpClient = new FTPClient();
         ftpClient.setAutodetectUTF8(true);
-        ftpClient.enterLocalPassiveMode();
         if (option.getPort() != null) {
             ftpClient.connect(option.getHost(), option.getPort());
         } else {
             ftpClient.connect(option.getHost());
         }
+        ftpClient.enterLocalPassiveMode();
         ftpClient.login(option.getLogin(), option.getPassword());
+        if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
+            throw new ConnectException(ftpClient.getReplyString());
+        }
         return ftpClient;
     }
 

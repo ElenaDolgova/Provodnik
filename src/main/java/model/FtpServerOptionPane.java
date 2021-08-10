@@ -71,7 +71,7 @@ public final class FtpServerOptionPane {
             return host;
         }
 
-        public Integer getPort() {
+        public Integer getPort() throws NumberFormatException{
             if (port == null || port.length() == 0) {
                 return null;
             }
