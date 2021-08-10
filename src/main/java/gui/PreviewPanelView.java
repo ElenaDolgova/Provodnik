@@ -51,7 +51,7 @@ public class PreviewPanelView {
             ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
             ImageIcon icon =
-                    new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_FAST));
+                    new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
             image.setIcon(icon);
             textArea.setVisible(false);
             image.setVisible(true);

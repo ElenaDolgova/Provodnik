@@ -140,7 +140,8 @@ public class DirectoryView {
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
         return e -> {
             FtpServerOptionPane optionPane = new FtpServerOptionPane();
-            FtpServerOptionPane.FtpServerOption option = optionPane.showConfirmDialog(connectToFtpButton);
+            FtpServerOptionPane.FtpServerOption option =
+                    optionPane.showConfirmDialog(connectToFtpButton, "Enter the data for connecting to the ftp server");
             SwingUtilities.invokeLater(() -> {
                 renderer.setSpinnerVisible(true);
                 new SwingWorker<Void, Void>() {
@@ -173,7 +174,8 @@ public class DirectoryView {
             }
         } catch (UnknownHostException p) {
             FtpServerOptionPane optionPane = new FtpServerOptionPane();
-            tryToConnectToFtp(optionPane.showConfirmDialog(connectToFtpButton), renderer);
+            tryToConnectToFtp(optionPane.showConfirmDialog(connectToFtpButton,
+                    "There is invalid connect data to ftp server. Try again"), renderer);
             p.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();

@@ -72,7 +72,7 @@ public class FilesView {
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
         displayFiles.addMouseListener(getMouseDisplayFilesListener(renderer));
-        displayFiles.addKeyListener(DisplayFilesListener(renderer));
+        displayFiles.addKeyListener(displayFilesListener(renderer));
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -88,25 +88,31 @@ public class FilesView {
                 if (mouseEvent.getClickCount() == 2) {
                     fileScrollEvent(mouseEvent, renderer);
                 }
+                if (mouseEvent.getClickCount() == 1) {
+                    previewEvent(mouseEvent, renderer);
+                }
             }
         };
     }
 
     /**
-     * Листенер для хождения по файлам в файловом скролле
+     * Листенер для хождения по файлам в файловом скролле с помощью клавищ
      */
-    public KeyListener DisplayFilesListener(Renderer renderer) {
+    public KeyListener displayFilesListener(Renderer renderer) {
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent keyEvent) {
+                System.out.println(keyEvent.getKeyCode());
             }
 
             @Override
             public void keyPressed(KeyEvent keyEvent) {
-                if (keyEvent.getKeyCode() == VK_ENTER) {
-                    fileScrollEvent(keyEvent, renderer);
-                } else if (keyEvent.getKeyCode() == VK_ESCAPE) {
+                if (keyEvent.getKeyCode() == VK_ESCAPE) {
                     DirectoryView.removeLastElementFromDirectory(renderer);
+                } else if (keyEvent.getKeyCode() == VK_ENTER) {
+                    fileScrollEvent(keyEvent, renderer);
+                } else {
+                    previewEvent(keyEvent, renderer);
                 }
             }
 
@@ -144,6 +150,29 @@ public class FilesView {
                         renderer.updatePreviewPanel(
                                 Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
                     }
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
+                }
+            }.execute();
+        });
+    }
+
+    private void previewEvent(InputEvent inputEvent, Renderer renderer) {
+        previewPanelView.hideContent();
+        JList<Directory> source = (JList<Directory>) inputEvent.getSource();
+        Directory displayFiles = source.getSelectedValue();
+
+        SwingUtilities.invokeLater(() -> {
+            renderer.setSpinnerVisible(true);
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() {
+                    renderer.updatePreviewPanel(
+                            Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
                     return null;
                 }
 

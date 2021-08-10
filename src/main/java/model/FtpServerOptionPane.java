@@ -41,9 +41,9 @@ public final class FtpServerOptionPane {
     }
 
     @Nullable
-    public FtpServerOption showConfirmDialog(Component parentComponent) {
-        int result = JOptionPane.showConfirmDialog(parentComponent, panel,
-                "Введите данные подключения к ftp серверу", JOptionPane.DEFAULT_OPTION);
+    public FtpServerOption showConfirmDialog(Component parentComponent, String message) {
+        int result = JOptionPane.showConfirmDialog(parentComponent, panel, message,
+                JOptionPane.DEFAULT_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
             return new FtpServerOption(
@@ -80,7 +80,7 @@ public final class FtpServerOptionPane {
 
         public String getLogin() {
             if (login == null || login.length() == 0) {
-                return "anonymous";
+                return "anonymous"; //ftp.zew.de  ftp.efix.pl
             }
             return login;
         }
