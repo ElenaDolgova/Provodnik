@@ -17,7 +17,7 @@ public class LocalFileDirectoryTest {
     private final static String directoryTestPath = "src/test/resources/LocalFileDirectoryTest";
 
     @Test
-    @DisplayName("Проверяем пустую директорию без фильтрации")
+    @DisplayName("Проверяем директорию без фильтрации")
     public void localDirectoryEmptyTest() {
         File file = new File(directoryTestPath + "/localDirectoryTest/folder1");
         Path path = Paths.get(file.getAbsolutePath());
@@ -26,12 +26,12 @@ public class LocalFileDirectoryTest {
 
         Collection<Directory> response = TestUtilities.getResponseFiles(localDirectory, null);
         Assertions.assertEquals("folder1", localDirectory.getName());
-        Assertions.assertTrue(response.isEmpty());
+        Assertions.assertEquals(1, response.size());
     }
 
 
     @Test
-    @DisplayName("Проверяем пустую директорию на фильтрацию по расширению zip")
+    @DisplayName("Проверяем директорию на фильтрацию по расширению zip")
     public void localDirectoryEmptyTestZip() {
         File file = new File(directoryTestPath + "/localDirectoryTest/folder1");
         Path path = Paths.get(file.getAbsolutePath());
@@ -43,7 +43,7 @@ public class LocalFileDirectoryTest {
     }
 
     @Test
-    @DisplayName("Проверяем пустую директорию на фильтрацию по расширению txt")
+    @DisplayName("Проверяем директорию на фильтрацию по расширению txt")
     public void localDirectoryEmptyTestTxt() {
         File file = new File(directoryTestPath + "/localDirectoryTest/folder1");
         Path path = Paths.get(file.getAbsolutePath());
@@ -51,7 +51,7 @@ public class LocalFileDirectoryTest {
         Directory localDirectory = new LocalFileDirectory(fs, path);
 
         Collection<Directory> responseTxt = TestUtilities.getResponseFiles(localDirectory, "txt");
-        Assertions.assertTrue(responseTxt.isEmpty());
+        Assertions.assertEquals(1, responseTxt.size());
     }
 
     @Test
@@ -78,7 +78,7 @@ public class LocalFileDirectoryTest {
 
                     Collection<Directory> subDirectory = TestUtilities.getResponseFiles(directory, null);
 
-                    Assertions.assertTrue(subDirectory.isEmpty());
+                    Assertions.assertFalse(subDirectory.isEmpty());
                 });
     }
 
@@ -167,7 +167,7 @@ public class LocalFileDirectoryTest {
                                     switch (folder11.getName()) {
                                         case "folder11":
                                             Assertions.assertTrue(folder11.isDirectory());
-                                            Assertions.assertTrue(
+                                            Assertions.assertFalse(
                                                     TestUtilities.getResponseFiles(
                                                             folder11.createDirectory(), null).isEmpty());
                                             break;
