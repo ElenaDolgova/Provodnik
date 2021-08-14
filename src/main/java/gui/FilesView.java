@@ -16,8 +16,16 @@ import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
@@ -171,8 +179,10 @@ public class FilesView {
             new SwingWorker<Void, Void>() {
                 @Override
                 protected Void doInBackground() {
-                    renderer.updatePreviewPanel(
-                            Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
+                    if (!displayFiles.isDirectory()) {
+                        renderer.updatePreviewPanel(
+                                Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
+                    }
                     return null;
                 }
 

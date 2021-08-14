@@ -72,7 +72,6 @@ public class PreviewPanelView {
                 input.close();
                 textArea.read(new StringReader(str), null);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
