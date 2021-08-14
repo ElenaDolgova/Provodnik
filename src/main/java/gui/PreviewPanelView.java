@@ -1,9 +1,13 @@
 package gui;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PreviewPanelView {
@@ -32,32 +36,59 @@ public class PreviewPanelView {
         textArea.setEditable(false);
     }
 
+    public void update(ImageIcon icon, Renderer renderer) {
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
+        update(() -> {
+            updateImage(icon);
+            return null;
+        }, renderer);
+        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
+    }
+
     public void update(String probeContentType, InputStream in, Renderer renderer) {
         if (probeContentType == null) {
             return;
         }
+        update(() -> {
+            if (probeContentType.contains("image")) {
+                updateImage(in);
+            } else if (probeContentType.contains("text")) {
+                updateTxt(in);
+            }
+            return null;
+        }, renderer);
+    }
+
+    private void update(Supplier<Void> consumer, Renderer renderer) {
         SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
-        if (probeContentType.contains("image")) {
-            updateImage(in);
-        } else if (probeContentType.contains("text")) {
-            updateTxt(in);
-        }
+        consumer.get();
         SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
     }
 
+    private void updateImage(ImageIcon icon) {
+        image.setIcon(icon);
+        textArea.setVisible(false);
+        image.setVisible(true);
+    }
+
     private void updateImage(InputStream in) {
+        ImageIcon icon = getImageIcon(in);
+        image.setIcon(icon);
+        textArea.setVisible(false);
+        image.setVisible(true);
+    }
+
+    @Nullable
+    public ImageIcon getImageIcon(InputStream in) {
         Image inputImage;
+        ImageIO.setUseCache(false);
         try {
-            ImageIO.setUseCache(false);
             inputImage = ImageIO.read(in);
-            ImageIcon icon =
-                    new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
-            image.setIcon(icon);
-            textArea.setVisible(false);
-            image.setVisible(true);
+            return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public void updateTxt(InputStream in) {

@@ -5,18 +5,22 @@ import model.Directory;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class Renderer {
     private final DirectoryView directoryView;
     private final FilesView filesView;
     private final PreviewPanelView previewPanelView;
+    private final PreviewImageCache previewImageCache;
 
     public Renderer(DirectoryView directoryView,
                     FilesView filesView,
-                    PreviewPanelView previewPanelView) {
+                    PreviewPanelView previewPanelView,
+                    PreviewImageCache previewImageCache) {
         this.directoryView = directoryView;
         this.filesView = filesView;
         this.previewPanelView = previewPanelView;
+        this.previewImageCache = previewImageCache;
     }
 
     /**
@@ -105,7 +109,21 @@ public class Renderer {
                 @Override
                 protected Void doInBackground() {
                     try {
-                        directory.getFiles(it -> it.forEach(this::publish), ext);
+                        directory.getFiles(batchDirectories ->
+                                batchDirectories.forEach(
+                                        directory -> {
+                                            this.publish(directory);
+                                            String probeContentType = Directory.getProbeContentType(directory.getPath());
+                                            if (probeContentType != null && probeContentType.contains("image")) {
+                                                previewImageCache.computeAndCache(directory.getPath(), () -> {
+                                                    ImageIcon[] imageIcon = new ImageIcon[1];
+                                                    directory.processFile(in ->
+                                                            imageIcon[0] = previewPanelView.getImageIcon(in)
+                                                    );
+                                                    return imageIcon[0];
+                                                });
+                                            }
+                                        }), ext);
                     } catch (FileProcessingException e) {
                         showWarningPane(e);
                     }
@@ -142,7 +160,12 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
-            displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
+            final ImageIcon icon = previewImageCache.get(displayFiles.getPath());
+            if (icon != null) {
+                previewPanelView.update(icon, this);
+            } else {
+                displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
+            }
         } catch (exception.FileProcessingException e) {
             e.printStackTrace();
         }

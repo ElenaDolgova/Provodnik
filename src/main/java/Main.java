@@ -1,10 +1,7 @@
-import gui.Dimensions;
-import gui.DirectoryView;
-import gui.FilesView;
-import gui.PreviewPanelView;
-import gui.Renderer;
+import gui.*;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
@@ -38,7 +35,8 @@ public class Main {
                 rightSplit
         );
 
-        gui.Renderer renderer = new Renderer(directoryScrollPane, filesScrollPane, previewPanel);
+        final PreviewImageCache previewImageCache = new PreviewImageCache();
+        final Renderer renderer = new Renderer(directoryScrollPane, filesScrollPane, previewPanel, previewImageCache);
         filesScrollPane.init(renderer);
         directoryScrollPane.init(renderer);
         previewPanel.init();
