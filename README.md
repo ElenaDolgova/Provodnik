@@ -2,7 +2,7 @@
 Provodnik - a program that allows you to view files from local disks, in zip archives and on ftp servers.
 Any nesting of zip archives into each other is supported. Unix and Windows OS are supported.
 
-# Функционал
+# Functionality
 - Viewing the contents of local disks.
 - Viewing the contents of zip archives.
   ![img1.gif](localAndZip.gif)
@@ -13,14 +13,14 @@ Any nesting of zip archives into each other is supported. Unix and Windows OS ar
 - Navigation is performed by double-clicking and using key "enter" or key "esc" buttons.
 - Directories that can be visited are displayed in blue.
 
-# Требования
+# Requirements
 Java 11
 
-# Реализация
-## Локальные и zip директории
+# Implementation
+## Local and zip directories
 The java.nio.file library is used to read and view local and zip directories.
 
-## FTP-сервера
+## FTP server
 To read and view ftp servers, the library's FTP Client client is used apache.commons.net.
 For quickly view the contents of ftp servers, was used loading files via org.apache.commons.net.ftp.FTPListParseEngine.
 
