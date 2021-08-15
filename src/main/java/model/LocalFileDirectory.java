@@ -5,15 +5,17 @@ import exception.FileProcessingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.zip.ZipException;
 
 import static model.Directory.isZip;
 
@@ -39,7 +41,20 @@ public class LocalFileDirectory implements Directory {
     private Directory getDirectory(Path path) {
         try {
             if (isZip(path)) {
-                FileSystem fs = FileSystems.newFileSystem(path, null);
+                FileSystem fs = null;
+                for (String encoding : new String[]{"UTF-8", "Windows-1251"}) {
+                    for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+                        if ("jar".equals(provider.getScheme())) {
+                            try {
+                                fs = provider.newFileSystem(path, Map.of("encoding", encoding));
+                            } catch (UnsupportedOperationException | ZipException ignored) {
+                            }
+                        }
+                    }
+                }
+                if (fs == null) {
+                    throw new IllegalStateException("Unable to create zip filesystem");
+                }
                 return new ZipFileDirectory(path, fs, true);
             }
         } catch (IOException e) {

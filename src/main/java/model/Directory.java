@@ -37,13 +37,13 @@ public interface Directory {
 
     @Nullable
     static String getProbeContentType(Path path) {
-        String probeContentType = null;
+        String result = null;
         try {
-            probeContentType = Files.probeContentType(path);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+            result = Files.probeContentType(path);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return probeContentType;
+        return result;
     }
 
     static Stream<Path> streamAllFiles(FileSystem fs, int depth) {

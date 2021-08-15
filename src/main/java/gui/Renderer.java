@@ -116,7 +116,7 @@ public class Renderer {
                                             String probeContentType = Directory.getProbeContentType(directory.getPath());
                                             if (probeContentType != null && probeContentType.contains("image")) {
                                                 previewImageCache.computeAndCache(directory.getPath(), () -> {
-                                                    ImageIcon[] imageIcon = new ImageIcon[1];
+                                                    final ImageIcon[] imageIcon = new ImageIcon[1];
                                                     directory.processFile(in ->
                                                             imageIcon[0] = previewPanelView.getImageIcon(in)
                                                     );
@@ -160,11 +160,13 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
-            final ImageIcon icon = previewImageCache.get(displayFiles.getPath());
-            if (icon != null) {
-                previewPanelView.update(icon, this);
-            } else {
-                displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
+            if (probeContentType.contains("image") || probeContentType.contains("text")) {
+                final ImageIcon icon = previewImageCache.get(displayFiles.getPath());
+                if (icon != null) {
+                    previewPanelView.update(icon, this);
+                } else {
+                    displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
+                }
             }
         } catch (exception.FileProcessingException e) {
             e.printStackTrace();

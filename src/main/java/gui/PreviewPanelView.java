@@ -6,6 +6,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -84,7 +85,9 @@ public class PreviewPanelView {
         ImageIO.setUseCache(false);
         try {
             inputImage = ImageIO.read(in);
-            return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
+            if (inputImage != null) {
+                return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,7 +98,7 @@ public class PreviewPanelView {
         image.setVisible(false);
         textArea.setVisible(true);
         try {
-            try (InputStreamReader inputStreamReader = new InputStreamReader(in);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(in, StandardCharsets.UTF_8);
                  BufferedReader input = new BufferedReader(inputStreamReader)) {
                 String str = input.lines()
                         .limit(MAX_TEXT_LINES)

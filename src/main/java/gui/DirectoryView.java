@@ -173,7 +173,7 @@ public class DirectoryView {
                 getClearedDirectory(rootsScrollPane).addElement(directory);
                 renderer.updateFilesScrollPane(directory);
                 connectToFtpButton.setText("Disconnect");
-                changeButtonActionListener(disconnectMouseListener(renderer));
+                changeButtonActionListener(disconnectMouseListener(ftpClient, renderer));
             }
         } catch (UnknownHostException e) {
             showErrorMessage("Invalid host, try again", e);
@@ -196,7 +196,6 @@ public class DirectoryView {
 
     private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
         FTPClient ftpClient = new FTPClient();
-        ftpClient.setAutodetectUTF8(true);
         if (option.getPort() != null) {
             ftpClient.connect(option.getHost(), option.getPort());
         } else {
@@ -204,6 +203,7 @@ public class DirectoryView {
         }
         ftpClient.enterLocalPassiveMode();
         ftpClient.login(option.getLogin(), option.getPassword());
+        ftpClient.setAutodetectUTF8(true);
         if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
             throw new ConnectException(ftpClient.getReplyString());
         }
@@ -213,8 +213,13 @@ public class DirectoryView {
     /**
      * Действие, отвечающие за кнопку отключение от ftp сервера и возвращение в локальную рутовую директорию
      */
-    private ActionListener disconnectMouseListener(Renderer renderer) {
+    private ActionListener disconnectMouseListener(FTPClient ftpClient, Renderer renderer) {
         return e -> {
+            try {
+                ftpClient.disconnect();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
             FtpFileDirectory.clearCache();
             renderer.clearFileScrollPane();
             List<Directory> allRootDirectories = getAllRootDirectories();

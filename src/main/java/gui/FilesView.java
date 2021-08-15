@@ -16,10 +16,7 @@ import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -27,6 +24,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.EventObject;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
@@ -49,9 +49,13 @@ public class FilesView {
         this.previewPanelView = previewPanelView;
 
         this.textField = new JTextField();
+        URL loadingGifUrl = getClass().getClassLoader().getResource("img/loading.gif");
+        if (loadingGifUrl == null) {
+            throw new IllegalStateException("Unable to open img/loading.gif");
+        }
         this.spinner = new JLabel(
                 new ImageIcon(
-                        new ImageIcon(getClass().getClassLoader().getResource("img/loading.gif"))
+                        new ImageIcon(loadingGifUrl)
                                 .getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)
                 )
         );
@@ -64,7 +68,11 @@ public class FilesView {
 
         ImageIcon folderIcon = null;
         try {
-            Image image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("img/folder.png"));
+            InputStream resource = getClass().getClassLoader().getResourceAsStream("img/folder.png");
+            if (resource == null) {
+                throw new IllegalStateException("Unable to open img/folder.png");
+            }
+            Image image = ImageIO.read(resource);
             folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,6 +88,7 @@ public class FilesView {
         displayFiles.setCellRenderer(new FileListCellRenderer());
         jScrollPane.setViewportView(displayFiles);
         displayFiles.addMouseListener(getMouseDisplayFilesListener(renderer));
+        displayFiles.addListSelectionListener(listSelectionEvent -> previewEvent(listSelectionEvent, renderer));
         displayFiles.addKeyListener(displayFilesListener(renderer));
     }
 
@@ -96,9 +105,6 @@ public class FilesView {
                 if (mouseEvent.getClickCount() == 2) {
                     fileScrollEvent(mouseEvent, renderer);
                 }
-                if (mouseEvent.getClickCount() == 1) {
-                    previewEvent(mouseEvent, renderer);
-                }
             }
         };
     }
@@ -110,7 +116,7 @@ public class FilesView {
         return new KeyListener() {
             @Override
             public void keyTyped(KeyEvent keyEvent) {
-                System.out.println(keyEvent.getKeyCode());
+                System.out.println("keyTyped " + keyEvent.getKeyCode());
             }
 
             @Override
@@ -119,13 +125,12 @@ public class FilesView {
                     DirectoryView.removeLastElementFromDirectory(renderer);
                 } else if (keyEvent.getKeyCode() == VK_ENTER) {
                     fileScrollEvent(keyEvent, renderer);
-                } else {
-                    previewEvent(keyEvent, renderer);
                 }
             }
 
             @Override
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(KeyEvent keyEvent) {
+                previewEvent(keyEvent, renderer);
             }
         };
     }
@@ -155,8 +160,10 @@ public class FilesView {
                             renderer.showWarningPane(e);
                         }
                     } else {
-                        renderer.updatePreviewPanel(
-                                Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
+                        String probeContentType = Directory.getProbeContentType(displayFiles.getPath());
+                        if (probeContentType != null) {
+                            renderer.updatePreviewPanel(probeContentType, displayFiles);
+                        }
                     }
                     return null;
                 }
@@ -169,29 +176,31 @@ public class FilesView {
         });
     }
 
-    private void previewEvent(InputEvent inputEvent, Renderer renderer) {
+    private void previewEvent(EventObject inputEvent, Renderer renderer) {
         previewPanelView.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();
         Directory displayFiles = source.getSelectedValue();
 
-        SwingUtilities.invokeLater(() -> {
-            renderer.setSpinnerVisible(true);
-            new SwingWorker<Void, Void>() {
-                @Override
-                protected Void doInBackground() {
-                    if (!displayFiles.isDirectory()) {
-                        renderer.updatePreviewPanel(
-                                Directory.getProbeContentType(displayFiles.getPath()), displayFiles);
+        if (displayFiles != null && !displayFiles.isDirectory()) {
+            SwingUtilities.invokeLater(() -> {
+                renderer.setSpinnerVisible(true);
+                new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() {
+                        String probeContentType = Directory.getProbeContentType(displayFiles.getPath());
+                        if (probeContentType != null) {
+                            renderer.updatePreviewPanel(probeContentType, displayFiles);
+                        }
+                        return null;
                     }
-                    return null;
-                }
 
-                @Override
-                protected void done() {
-                    SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
-                }
-            }.execute();
-        });
+                    @Override
+                    protected void done() {
+                        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
+                    }
+                }.execute();
+            });
+        }
     }
 
     public JScrollPane getScrollPane() {
