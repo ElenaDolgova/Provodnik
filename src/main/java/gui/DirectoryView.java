@@ -193,7 +193,6 @@ public class DirectoryView implements View {
 
     private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
         FTPClient ftpClient = new FTPClient();
-        ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
         if (option.getPort() != null) {
             ftpClient.connect(option.getHost(), option.getPort());
         } else {
