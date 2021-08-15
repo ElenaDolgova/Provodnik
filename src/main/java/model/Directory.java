@@ -23,7 +23,7 @@ public interface Directory {
 
     Directory createDirectory() throws FileProcessingException;
 
-    void processFile(Consumer<InputStream> consumer) throws FileProcessingException;
+    void processFile(Consumer<InputStream> consumer, String probeContentType) throws FileProcessingException;
 
     /**
      * Метод проходится по директории и достаёт из нее все элементы. После batchAction обрабатывает эти элементы.

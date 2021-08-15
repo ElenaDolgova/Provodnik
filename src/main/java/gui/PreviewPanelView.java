@@ -12,27 +12,25 @@ import java.util.stream.Collectors;
 
 public class PreviewPanelView {
     private static final int MAX_TEXT_LINES = 20;
-    private final JPanel panel = new JPanel(new GridBagLayout());
+    private final JPanel previewPanel = new JPanel(new GridBagLayout());
     private final JLabel image = new JLabel();
 
-    private final JTextArea textArea = new JTextArea(7, 40);
+    private final JTextArea textArea = new JTextArea();
 
     public void init() {
-        panel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
+        previewPanel.setPreferredSize(new Dimension(Dimensions.PREVIEW_PANEL_WIDTH, Dimensions.PREVIEW_PANEL_HEIGHT));
         initImage();
         initTextArea();
     }
 
     private void initImage() {
-        panel.add(image);
+        previewPanel.add(image);
         image.setVisible(false);
     }
 
     private void initTextArea() {
-        panel.add(textArea);
+        previewPanel.add(textArea);
         textArea.setVisible(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
         textArea.setEditable(false);
     }
 
@@ -88,7 +86,7 @@ public class PreviewPanelView {
     public ImageIcon getImageIcon(InputStream in) {
         Image inputImage = getImage(in);
         if (inputImage != null) {
-            return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
+            return new ImageIcon(inputImage.getScaledInstance(previewPanel.getWidth(), -1, Image.SCALE_SMOOTH));
         }
         return null;
     }
@@ -110,8 +108,8 @@ public class PreviewPanelView {
         }
     }
 
-    public JPanel getPanel() {
-        return panel;
+    public JPanel getPreviewPanel() {
+        return previewPanel;
     }
 
     public void hideContent() {

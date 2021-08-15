@@ -5,10 +5,7 @@ import exception.FileProcessingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
@@ -69,7 +66,7 @@ public class LocalFileDirectory implements Directory {
     }
 
     @Override
-    public void processFile(Consumer<InputStream> consumer) {
+    public void processFile(Consumer<InputStream> consumer, String probeContentType) {
         try {
             byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
             consumer.accept(new ByteArrayInputStream(bytes));

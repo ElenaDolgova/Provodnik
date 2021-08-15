@@ -135,7 +135,7 @@ public class ZipFileDirectoryTest {
         Assertions.assertEquals("get-pip.py", responseFilterZipPy.get(0).getName());
 
         AtomicReference<InputStream> txtStream = new AtomicReference<>();
-        responseFilterZipPy.get(0).processFile(txtStream::set);
+        responseFilterZipPy.get(0).processFile(txtStream::set, "text");
         try {
             Assertions.assertTrue(txtStream.get().readAllBytes().length > 0);
         } catch (IOException e) {
@@ -163,7 +163,7 @@ public class ZipFileDirectoryTest {
         Assertions.assertEquals("image2.png", responseFilterZipPy.get(0).getName());
 
         AtomicReference<InputStream> imageStream = new AtomicReference<>();
-        responseFilterZipPy.get(0).processFile(imageStream::set);
+        responseFilterZipPy.get(0).processFile(imageStream::set, "image");
         try {
             Assertions.assertTrue(imageStream.get().readAllBytes().length > 0);
         } catch (IOException e) {

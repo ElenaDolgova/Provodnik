@@ -81,7 +81,7 @@ public class FilesView {
         displayFiles.addMouseListener(getMouseDisplayFilesListener(renderer));
         displayFiles.addListSelectionListener(listSelectionEvent -> previewEvent(listSelectionEvent, renderer));
         displayFiles.addKeyListener(displayFilesListener(renderer));
-        previewPanelView.getPanel().addComponentListener(new ComponentAdapter() {
+        previewPanelView.getPreviewPanel().addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 drawPreview(renderer, displayFiles.getSelectedValue());

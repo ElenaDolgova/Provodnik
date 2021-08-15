@@ -83,7 +83,7 @@ public class FtpFileDirectory implements Directory {
     public Directory createDirectory() {
         if (Directory.isZip(getPath())) {
             try {
-                File file = getFileFromCacheOrDownload();
+                File file = getFileFromCacheOrDownload(".zip");
                 FileSystem newFileSystem = FileSystems.newFileSystem(file.toPath(), null);
                 return new ZipFileDirectory(file.toPath(), newFileSystem, getName(), true);
             } catch (IOException e) {
@@ -97,10 +97,10 @@ public class FtpFileDirectory implements Directory {
      * @return возвращает файл, который был скачан ранее и закеширован, или
      * скачивает файл, кеширует его и возвращает обратно
      */
-    private File getFileFromCacheOrDownload() {
+    private File getFileFromCacheOrDownload(String suffix) {
         return CACHED_FILES.computeIfAbsent(path, path -> {
             try {
-                File file = File.createTempFile("tmp", ".zip");
+                File file = File.createTempFile("tmp", suffix);
                 file.deleteOnExit();
                 try (OutputStream outputStream = new FileOutputStream(file)) {
                     downloadFile(outputStream);
@@ -136,17 +136,25 @@ public class FtpFileDirectory implements Directory {
     }
 
     @Override
-    public void processFile(Consumer<InputStream> consumer) {
-        try (InputStream in = ftpClient.retrieveFileStream(path)) {
-            consumer.accept(in);
-        } catch (IOException e) {
-            throw new FileProcessingException("Unable to download file", e);
-        } finally {
-            try {
-                ftpClient.completePendingCommand();
+    public void processFile(Consumer<InputStream> consumer, String probeContentType) {
+        if (probeContentType != null && probeContentType.contains("image")) {
+            try (InputStream in = new FileInputStream(getFileFromCacheOrDownload(".img"))) {
+                consumer.accept(in);
             } catch (IOException e) {
-                System.err.println("Unable to complete file download");
                 e.printStackTrace();
+            }
+        } else {
+            try (InputStream in = ftpClient.retrieveFileStream(path)) {
+                consumer.accept(in);
+            } catch (IOException e) {
+                throw new FileProcessingException("Unable to download file", e);
+            } finally {
+                try {
+                    ftpClient.completePendingCommand();
+                } catch (IOException e) {
+                    System.err.println("Unable to complete file download");
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -123,12 +123,13 @@ public class Renderer {
                                             if (probeContentType != null && probeContentType.contains("image")) {
                                                 previewImageCache.computeAndCacheAsync(
                                                         directory.getPath().toString(),
-                                                        previewPanelView.getPanel().getWidth(),
+                                                        previewPanelView.getPreviewPanel().getWidth(),
                                                         -1,
                                                         () -> {
                                                             final Image[] imageIcon = new Image[1];
                                                             directory.processFile(in ->
-                                                                    imageIcon[0] = previewPanelView.getImage(in)
+                                                                    imageIcon[0] = previewPanelView.getImage(in),
+                                                                    probeContentType
                                                             );
                                                             return imageIcon[0];
                                                         });
@@ -147,7 +148,7 @@ public class Renderer {
 
                 @Override
                 protected void done() {
-                    SwingUtilities.invokeLater(() -> setSpinnerVisible(false));
+                    setSpinnerVisible(false);
                 }
             }.execute();
         });
@@ -170,7 +171,7 @@ public class Renderer {
      */
     public void updatePreviewPanel(String probeContentType, Directory directory) {
         try {
-            int imageWidth = previewPanelView.getPanel().getWidth();
+            int imageWidth = previewPanelView.getPreviewPanel().getWidth();
             if (imageWidth > 0 && (probeContentType.contains("image") || probeContentType.contains("text"))) {
                 final ImageIcon icon = previewImageCache.computeIfAbsent(
                         directory.getPath().toString(),
@@ -179,14 +180,14 @@ public class Renderer {
                         () -> {
                             final Image[] imageIcon = new Image[1];
                             directory.processFile(in ->
-                                    imageIcon[0] = previewPanelView.getImage(in)
-                            );
+                                    imageIcon[0] = previewPanelView.getImage(in),
+                                    probeContentType);
                             return imageIcon[0];
                         });
                 if (icon != null) {
                     previewPanelView.update(icon, this);
                 } else {
-                    directory.processFile(it -> previewPanelView.update(probeContentType, it, this));
+                    directory.processFile(it -> previewPanelView.update(probeContentType, it, this), probeContentType);
                 }
             }
         } catch (exception.FileProcessingException e) {

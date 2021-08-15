@@ -30,7 +30,7 @@ public class Main {
         final JSplitPane rightSplit = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 filesScrollPane.getMainFileScrollPane(),
-                previewPanel.getPanel()
+                previewPanel.getPreviewPanel()
         );
 
         final JSplitPane mainSplit = new JSplitPane(

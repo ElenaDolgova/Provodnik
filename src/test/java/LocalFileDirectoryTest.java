@@ -103,7 +103,7 @@ public class LocalFileDirectoryTest {
                     Assertions.assertTrue(Directory.getProbeContentType(folder.getPath()).contains("image"));
                     Assertions.assertEquals(Paths.get(file.getAbsolutePath() + "/" + folder.getName()), folder.getPath());
                     AtomicReference<InputStream> imageStream = new AtomicReference<>();
-                    folder.processFile(imageStream::set);
+                    folder.processFile(imageStream::set, "image");
                     try {
                         Assertions.assertTrue(imageStream.get().readAllBytes().length > 0);
                     } catch (IOException e) {
@@ -133,7 +133,7 @@ public class LocalFileDirectoryTest {
                     Assertions.assertTrue(Directory.getProbeContentType(folder.getPath()).contains("text"));
                     Assertions.assertEquals(Paths.get(file.getAbsolutePath() + "/" + folder.getName()), folder.getPath());
                     AtomicReference<InputStream> imageStream = new AtomicReference<>();
-                    folder.processFile(imageStream::set);
+                    folder.processFile(imageStream::set, "text");
                     try {
                         Assertions.assertTrue(imageStream.get().readAllBytes().length > 0);
                     } catch (IOException e) {
