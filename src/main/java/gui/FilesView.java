@@ -4,18 +4,7 @@ import exception.FileProcessingException;
 import model.Directory;
 
 import javax.imageio.ImageIO;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ScrollPaneLayout;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.UIManager;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -26,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.EventObject;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
@@ -39,8 +29,10 @@ public class FilesView {
     private final JLabel spinner;
     private final ImageIcon folderIcon;
     private final PreviewPanelView previewPanelView;
+    private final PreviewImageCache previewImageCache;
 
-    public FilesView(PreviewPanelView previewPanelView) {
+    public FilesView(PreviewPanelView previewPanelView, PreviewImageCache previewImageCache) {
+        this.previewImageCache = previewImageCache;
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setLayout(new ScrollPaneLayout());
         this.jScrollPane = scrollPane;
@@ -73,7 +65,11 @@ public class FilesView {
                 throw new IllegalStateException("Unable to open img/folder.png");
             }
             Image image = ImageIO.read(resource);
-            folderIcon = new ImageIcon(image.getScaledInstance(15, 15, Image.SCALE_FAST));
+            folderIcon = new ImageIcon(image.getScaledInstance(
+                    Dimensions.FILE_ICON_SIZE,
+                    Dimensions.FILE_ICON_SIZE,
+                    Image.SCALE_FAST
+            ));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -233,7 +229,14 @@ public class FilesView {
             if (((Directory) value).isDirectory()) {
                 label.setIcon(folderIcon);
             } else {
-                label.setIcon(UIManager.getIcon("FileView.fileIcon"));
+                ImageIcon cachedPreview = previewImageCache.get(file.getPath() + "__icon");
+                Icon icon;
+                if (cachedPreview == null) {
+                    icon = UIManager.getIcon("FileView.fileIcon");
+                } else {
+                    icon = cachedPreview;
+                }
+                label.setIcon(icon);
             }
             label.setText(file.getName());
 

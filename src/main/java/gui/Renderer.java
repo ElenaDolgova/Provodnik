@@ -5,7 +5,6 @@ import model.Directory;
 
 import javax.swing.*;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class Renderer {
     private final DirectoryView directoryView;
@@ -115,7 +114,7 @@ public class Renderer {
                                             this.publish(directory);
                                             String probeContentType = Directory.getProbeContentType(directory.getPath());
                                             if (probeContentType != null && probeContentType.contains("image")) {
-                                                previewImageCache.computeAndCache(directory.getPath(), () -> {
+                                                previewImageCache.computeAndCacheAsync(directory.getPath().toString(), () -> {
                                                     final ImageIcon[] imageIcon = new ImageIcon[1];
                                                     directory.processFile(in ->
                                                             imageIcon[0] = previewPanelView.getImageIcon(in)
@@ -161,7 +160,7 @@ public class Renderer {
     public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
         try {
             if (probeContentType.contains("image") || probeContentType.contains("text")) {
-                final ImageIcon icon = previewImageCache.get(displayFiles.getPath());
+                final ImageIcon icon = previewImageCache.get(displayFiles.getPath().toString());
                 if (icon != null) {
                     previewPanelView.update(icon, this);
                 } else {

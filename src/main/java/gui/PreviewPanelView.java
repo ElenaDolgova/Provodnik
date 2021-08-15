@@ -7,7 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,8 @@ public class PreviewPanelView {
         }
         update(() -> {
             if (probeContentType.contains("image")) {
-                updateImage(in);
+                ImageIcon icon = getImageIcon(in);
+                updateImage(icon);
             } else if (probeContentType.contains("text")) {
                 updateTxt(in);
             }
@@ -72,24 +72,20 @@ public class PreviewPanelView {
         image.setVisible(true);
     }
 
-    private void updateImage(InputStream in) {
-        ImageIcon icon = getImageIcon(in);
-        image.setIcon(icon);
-        textArea.setVisible(false);
-        image.setVisible(true);
+    public Image getImage(InputStream in) {
+        try {
+            return ImageIO.read(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Nullable
     public ImageIcon getImageIcon(InputStream in) {
-        Image inputImage;
-        ImageIO.setUseCache(false);
-        try {
-            inputImage = ImageIO.read(in);
-            if (inputImage != null) {
-                return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        Image inputImage = getImage(in);
+        if (inputImage != null) {
+            return new ImageIcon(inputImage.getScaledInstance(panel.getWidth(), -1, Image.SCALE_SMOOTH));
         }
         return null;
     }

@@ -20,4 +20,8 @@ public final class Dimensions {
      * Высота окна панели с превью
      */
     public static final int PREVIEW_PANEL_HEIGHT = MAIN_HEIGHT;
+    /**
+     * Ширина и высота иконки c файлом
+     */
+    public static final int FILE_ICON_SIZE = 15;
 }
