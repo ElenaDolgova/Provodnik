@@ -6,16 +6,10 @@ import model.Directory;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.EventObject;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
@@ -23,7 +17,7 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 
 public class FilesView {
     private final JPanel mainFileScrollPane;
-    private final JScrollPane jScrollPane;
+    private final JScrollPane fileScrollPane;
     private final JPanel northPanel;
     private final JTextField textField;
     private final JLabel spinner;
@@ -34,8 +28,9 @@ public class FilesView {
     public FilesView(PreviewPanelView previewPanelView, PreviewImageCache previewImageCache) {
         this.previewImageCache = previewImageCache;
         JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setMinimumSize(new Dimension(200, -1));
         scrollPane.setLayout(new ScrollPaneLayout());
-        this.jScrollPane = scrollPane;
+        this.fileScrollPane = scrollPane;
         this.mainFileScrollPane = new JPanel(new BorderLayout());
         this.northPanel = new JPanel(new BorderLayout());
         this.previewPanelView = previewPanelView;
@@ -55,7 +50,7 @@ public class FilesView {
         this.northPanel.add(this.spinner, BorderLayout.EAST);
         this.northPanel.add(this.textField, BorderLayout.CENTER);
 
-        this.mainFileScrollPane.add(jScrollPane, BorderLayout.CENTER);
+        this.mainFileScrollPane.add(fileScrollPane, BorderLayout.CENTER);
         this.mainFileScrollPane.add(northPanel, BorderLayout.NORTH);
 
         ImageIcon folderIcon = null;
@@ -82,10 +77,16 @@ public class FilesView {
         DefaultListModel<Directory> defaultListModel = new DefaultListModel<>();
         JList<Directory> displayFiles = new JList<>(defaultListModel);
         displayFiles.setCellRenderer(new FileListCellRenderer());
-        jScrollPane.setViewportView(displayFiles);
+        fileScrollPane.setViewportView(displayFiles);
         displayFiles.addMouseListener(getMouseDisplayFilesListener(renderer));
         displayFiles.addListSelectionListener(listSelectionEvent -> previewEvent(listSelectionEvent, renderer));
         displayFiles.addKeyListener(displayFilesListener(renderer));
+        previewPanelView.getPanel().addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                drawPreview(renderer, displayFiles.getSelectedValue());
+            }
+        });
     }
 
     private ActionListener getTextFiledListener(Renderer renderer) {
@@ -175,17 +176,20 @@ public class FilesView {
     private void previewEvent(EventObject inputEvent, Renderer renderer) {
         previewPanelView.hideContent();
         JList<Directory> source = (JList<Directory>) inputEvent.getSource();
-        Directory displayFiles = source.getSelectedValue();
+        Directory selectedFile = source.getSelectedValue();
+        drawPreview(renderer, selectedFile);
+    }
 
-        if (displayFiles != null && !displayFiles.isDirectory()) {
+    private void drawPreview(Renderer renderer, Directory selectedFile) {
+        if (selectedFile != null && !selectedFile.isDirectory()) {
             SwingUtilities.invokeLater(() -> {
                 renderer.setSpinnerVisible(true);
                 new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() {
-                        String probeContentType = Directory.getProbeContentType(displayFiles.getPath());
+                        String probeContentType = Directory.getProbeContentType(selectedFile.getPath());
                         if (probeContentType != null) {
-                            renderer.updatePreviewPanel(probeContentType, displayFiles);
+                            renderer.updatePreviewPanel(probeContentType, selectedFile);
                         }
                         return null;
                     }
@@ -199,8 +203,8 @@ public class FilesView {
         }
     }
 
-    public JScrollPane getScrollPane() {
-        return jScrollPane;
+    public JScrollPane getFileScrollPane() {
+        return fileScrollPane;
     }
 
     private class FileListCellRenderer extends DefaultListCellRenderer {
@@ -229,7 +233,11 @@ public class FilesView {
             if (((Directory) value).isDirectory()) {
                 label.setIcon(folderIcon);
             } else {
-                ImageIcon cachedPreview = previewImageCache.get(file.getPath() + "__icon");
+                ImageIcon cachedPreview = previewImageCache.get(
+                        file.getPath().toString(),
+                        Dimensions.FILE_ICON_SIZE,
+                        Dimensions.FILE_ICON_SIZE
+                );
                 Icon icon;
                 if (cachedPreview == null) {
                     icon = UIManager.getIcon("FileView.fileIcon");

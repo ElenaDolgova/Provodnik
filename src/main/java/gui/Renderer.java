@@ -3,7 +3,14 @@ package gui;
 import exception.FileProcessingException;
 import model.Directory;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import java.awt.Image;
 import java.util.List;
 
 public class Renderer {
@@ -72,7 +79,7 @@ public class Renderer {
      * @param directory Директория, файлы для которой нужно обновить
      */
     public void updateFilesScrollPane(Directory directory) {
-        DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesView.getFileScrollPane());
         updateFiles(sourceModel, directory, null);
     }
 
@@ -82,7 +89,7 @@ public class Renderer {
      * @param ext Расширение, по которому нужно пофильтровать файлы
      */
     public void updateFilesScrollPane(String ext) {
-        DefaultListModel<Directory> sourceModel = getModel(filesView.getScrollPane());
+        DefaultListModel<Directory> sourceModel = getModel(filesView.getFileScrollPane());
         Directory lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getDirectoryScrollPane());
         if (lastDirectory == null) {
             lastDirectory = directoryView.getLastDirectoryFromScroll(directoryView.getRootsScrollPane());
@@ -114,13 +121,17 @@ public class Renderer {
                                             this.publish(directory);
                                             String probeContentType = Directory.getProbeContentType(directory.getPath());
                                             if (probeContentType != null && probeContentType.contains("image")) {
-                                                previewImageCache.computeAndCacheAsync(directory.getPath().toString(), () -> {
-                                                    final ImageIcon[] imageIcon = new ImageIcon[1];
-                                                    directory.processFile(in ->
-                                                            imageIcon[0] = previewPanelView.getImageIcon(in)
-                                                    );
-                                                    return imageIcon[0];
-                                                });
+                                                previewImageCache.computeAndCacheAsync(
+                                                        directory.getPath().toString(),
+                                                        previewPanelView.getPanel().getWidth(),
+                                                        -1,
+                                                        () -> {
+                                                            final Image[] imageIcon = new Image[1];
+                                                            directory.processFile(in ->
+                                                                    imageIcon[0] = previewPanelView.getImage(in)
+                                                            );
+                                                            return imageIcon[0];
+                                                        });
                                             }
                                         }), ext);
                     } catch (FileProcessingException e) {
@@ -146,7 +157,7 @@ public class Renderer {
      * Очищаем панель с файлами и скрываем превью информацию
      */
     public void clearFileScrollPane() {
-        JList<Directory> links = (JList<Directory>) filesView.getScrollPane().getViewport().getView();
+        JList<Directory> links = (JList<Directory>) filesView.getFileScrollPane().getViewport().getView();
         if (links != null && links.getModel() != null && links.getModel().getSize() > 0) {
             DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) links.getModel();
             sourceModel.clear();
@@ -157,14 +168,25 @@ public class Renderer {
     /**
      * Обновляется панель с отображением текстового файла или изображения
      */
-    public void updatePreviewPanel(String probeContentType, Directory displayFiles) {
+    public void updatePreviewPanel(String probeContentType, Directory directory) {
         try {
-            if (probeContentType.contains("image") || probeContentType.contains("text")) {
-                final ImageIcon icon = previewImageCache.get(displayFiles.getPath().toString());
+            int imageWidth = previewPanelView.getPanel().getWidth();
+            if (imageWidth > 0 && (probeContentType.contains("image") || probeContentType.contains("text"))) {
+                final ImageIcon icon = previewImageCache.computeIfAbsent(
+                        directory.getPath().toString(),
+                        imageWidth,
+                        -1,
+                        () -> {
+                            final Image[] imageIcon = new Image[1];
+                            directory.processFile(in ->
+                                    imageIcon[0] = previewPanelView.getImage(in)
+                            );
+                            return imageIcon[0];
+                        });
                 if (icon != null) {
                     previewPanelView.update(icon, this);
                 } else {
-                    displayFiles.processFile(it -> previewPanelView.update(probeContentType, it, this));
+                    directory.processFile(it -> previewPanelView.update(probeContentType, it, this));
                 }
             }
         } catch (exception.FileProcessingException e) {
@@ -183,7 +205,7 @@ public class Renderer {
 
     public void showWarningPane(FileProcessingException e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(filesView.getScrollPane(),
+        JOptionPane.showMessageDialog(filesView.getFileScrollPane(),
                 new String[]{e.getMessage()},
                 "Error",
                 JOptionPane.ERROR_MESSAGE);

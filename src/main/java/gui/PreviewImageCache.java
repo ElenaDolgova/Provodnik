@@ -6,9 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.ImageIcon;
 import java.awt.*;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class PreviewImageCache {
     private final Executor executor = Executors.newFixedThreadPool(5);
@@ -17,21 +17,19 @@ public class PreviewImageCache {
             .<String, ImageIcon>build()
             .asMap();
 
-    public void computeAndCacheAsync(String path, Callable<ImageIcon> getter) {
+    public void computeAndCacheAsync(String path, int width, int height, Supplier<Image> getter) {
         executor.execute(() -> {
             try {
-                ImageIcon preview = getter.call();
-                if (preview != null) {
-                    cache.put(path, preview);
-                    cache.put(
-                            path + "__icon",
-                            new ImageIcon(
-                                    preview.getImage().getScaledInstance(
-                                            Dimensions.FILE_ICON_SIZE,
-                                            Dimensions.FILE_ICON_SIZE,
-                                            Image.SCALE_FAST
-                                    )
-                            )
+                Image img = getter.get();
+                if (img != null) {
+                    cache.putIfAbsent(String.format("%s__%dx%d", path, width, height), new ImageIcon(img.getScaledInstance(width, -1, Image.SCALE_SMOOTH)));
+                    cache.putIfAbsent(
+                            String.format("%s__%dx%d", path, Dimensions.FILE_ICON_SIZE, Dimensions.FILE_ICON_SIZE),
+                            new ImageIcon(img.getScaledInstance(
+                                    Dimensions.FILE_ICON_SIZE,
+                                    Dimensions.FILE_ICON_SIZE,
+                                    Image.SCALE_FAST
+                            ))
                     );
                 }
             } catch (Exception e) {
@@ -41,7 +39,19 @@ public class PreviewImageCache {
     }
 
     @Nullable
-    public ImageIcon get(String path) {
-        return cache.get(path);
+    public ImageIcon get(String path, int width, int height) {
+        return cache.get(String.format("%s__%dx%d", path, width, height));
+    }
+
+    @Nullable
+    public ImageIcon computeIfAbsent(String path, int width, int height, Supplier<Image> supplier) {
+        return cache.computeIfAbsent(String.format("%s__%dx%d", path, width, height), (unused) -> {
+            Image img = supplier.get();
+            if (img != null) {
+                return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+            } else {
+                return null;
+            }
+        });
     }
 }

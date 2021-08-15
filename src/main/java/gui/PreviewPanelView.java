@@ -61,9 +61,12 @@ public class PreviewPanelView {
     }
 
     private void update(Supplier<Void> consumer, Renderer renderer) {
-        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
-        consumer.get();
-        SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
+        try {
+            SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(true));
+            consumer.get();
+        } finally {
+            SwingUtilities.invokeLater(() -> renderer.setSpinnerVisible(false));
+        }
     }
 
     private void updateImage(ImageIcon icon) {
