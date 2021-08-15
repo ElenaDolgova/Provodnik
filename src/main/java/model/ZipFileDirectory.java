@@ -90,7 +90,7 @@ public class ZipFileDirectory implements Directory {
     }
 
     @Override
-    public void processFile(Consumer<InputStream> consumer) {
+    public void processFile(Consumer<InputStream> consumer, String probeContentType) {
         try {
             byte[] bytes = Files.readAllBytes(fs.getPath(path.toString()));
             consumer.accept(new ByteArrayInputStream(bytes));

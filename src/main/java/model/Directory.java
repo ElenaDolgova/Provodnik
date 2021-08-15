@@ -23,27 +23,27 @@ public interface Directory {
 
     Directory createDirectory() throws FileProcessingException;
 
-    void processFile(Consumer<InputStream> consumer) throws FileProcessingException;
+    void processFile(Consumer<InputStream> consumer, String probeContentType) throws FileProcessingException;
 
     /**
-     * Метод проходится по директории и достаёт из нее все элементы. После batchAction обрабатывает эти элементы.
-     * Если в метод передан ext, то возвращаются файлы, удовлетворяющие переданному ext расширению
+     * The method goes through the directory and gets all the elements from it.
+     * After the batchAction, it processes these elements.
+     * If filter extension is passed to the method, files that satisfy the passed extension are returned.
      *
-     * @param batchAction консьюмер, обрабатывающий вернувшиеся батчи файлов из текущей директории
-     * @param ext         расширение файлов, которые нужно вернуть
-     * @throws FileProcessingException
+     * @param batchAction consumer that processes returned files from the current directory
+     * @param ext         filter by extension
      */
     void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) throws FileProcessingException;
 
     @Nullable
     static String getProbeContentType(Path path) {
-        String probeContentType = null;
+        String result = null;
         try {
-            probeContentType = Files.probeContentType(path);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+            result = Files.probeContentType(path);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return probeContentType;
+        return result;
     }
 
     static Stream<Path> streamAllFiles(FileSystem fs, int depth) {

@@ -1,10 +1,8 @@
-import gui.Dimensions;
-import gui.DirectoryView;
-import gui.FilesView;
-import gui.PreviewPanelView;
-import gui.Renderer;
+import gui.*;
 
-import javax.swing.*;
+import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
@@ -18,18 +16,21 @@ public class Main {
     }
 
     private void init() {
+        ImageIO.setUseCache(false);
         final JFrame globalFrame = new JFrame("Provodnik");
         globalFrame.setLayout(new BorderLayout());
         globalFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         globalFrame.setPreferredSize(new Dimension(Dimensions.MAIN_WIDTH, Dimensions.MAIN_HEIGHT));
 
+
+        final PreviewImageCache previewImageCache = new PreviewImageCache();
         final DirectoryView directoryScrollPane = new DirectoryView();
         final PreviewPanelView previewPanel = new PreviewPanelView();
-        final FilesView filesScrollPane = new FilesView(previewPanel);
+        final FilesView filesScrollPane = new FilesView(previewPanel, previewImageCache);
         final JSplitPane rightSplit = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 filesScrollPane.getMainFileScrollPane(),
-                previewPanel.getPanel()
+                previewPanel.getPreviewPanel()
         );
 
         final JSplitPane mainSplit = new JSplitPane(
@@ -38,7 +39,7 @@ public class Main {
                 rightSplit
         );
 
-        gui.Renderer renderer = new Renderer(directoryScrollPane, filesScrollPane, previewPanel);
+        final Renderer renderer = new Renderer(directoryScrollPane, filesScrollPane, previewPanel, previewImageCache);
         filesScrollPane.init(renderer);
         directoryScrollPane.init(renderer);
         previewPanel.init();

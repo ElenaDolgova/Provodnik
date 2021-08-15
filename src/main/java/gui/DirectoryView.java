@@ -4,6 +4,7 @@ import model.Directory;
 import model.FtpFileDirectory;
 import model.FtpServerOptionPane;
 import model.LocalFileDirectory;
+import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,29 +13,31 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectoryView {
+public class DirectoryView implements View {
     /**
-     * Самая левая панель, на которой расположены сверху вниз:
-     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link #rootsScrollPane}
-     * - Скролл с путем открытых директорий {@link #directoryScrollPane}
-     * - Кнопка подключения/отключения от ftp сервера {@link #connectToFtpButton}
+     * The leftmost panel, which is located from top to bottom:
+     * - Scroll with rooted directories (It is relevant for the OS with several disks) {@link #rootsScrollPane}
+     * - Scroll with open directories {@link #directoryScrollPane}
+     * - The button for connecting/disconnecting from the ftp server {@link #connectToFtpButton}
      */
     private final JSplitPane mainDirectoryPane;
     /**
-     * Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков)
+     * Scroll with rooted directories (It is relevant for the OS with several disks) {@link #rootsScrollPane}
      */
     private final JScrollPane rootsScrollPane;
     /**
-     * Скролл с путем открытых директорий
+     * Scroll with open directories {@link #directoryScrollPane}
      */
     private JScrollPane directoryScrollPane;
     /**
-     * Кнопка подключения/отключения от ftp сервера
+     * The button for connecting/disconnecting from the ftp server {@link #connectToFtpButton}
      */
     private final JButton connectToFtpButton;
 
@@ -92,10 +95,9 @@ public class DirectoryView {
     }
 
     /**
-     * Метод вызывается при клике на определенный элемент на панели с директориями.
-     * При это если пользователь нажал на не листовую директорию,
-     * то директории перестают отображаться ровно до выбранной, и на панели с просмоторщиком файлов начинают
-     * отображаться файлы выбранной директории.
+     * The method is called when a specific element is clicked on the panel with directories.
+     * And if the user clicked on a non-leaf directory,
+     * the directories stop being displayed exactly until the selected one.
      */
     private MouseAdapter getDirectoryListener(Renderer renderer) {
         return new MouseAdapter() {
@@ -125,22 +127,21 @@ public class DirectoryView {
     }
 
     /**
-     * Удаляет листовую директорию
+     * Deletes the leaf directory.
      */
     public static void removeLastElementFromDirectory(Renderer renderer) {
-        //схлопываем директорию до нажатой
         Directory directory = renderer.squeezeDirectoriesByOne();
-        // обновляем содержимое панели с файлами
         renderer.updateFilesScrollPane(directory);
     }
 
     /**
-     * Листенер для кнопки подключения к ftp серверу
+     * Listener for the connecting to ftp server button.
      */
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
         return e -> {
             FtpServerOptionPane optionPane = new FtpServerOptionPane();
-            FtpServerOptionPane.FtpServerOption option = optionPane.showConfirmDialog(connectToFtpButton);
+            FtpServerOptionPane.FtpServerOption option =
+                    optionPane.showConfirmDialog(connectToFtpButton, "Enter the data for connecting to the ftp server");
             SwingUtilities.invokeLater(() -> {
                 renderer.setSpinnerVisible(true);
                 new SwingWorker<Void, Void>() {
@@ -169,35 +170,54 @@ public class DirectoryView {
                 getClearedDirectory(rootsScrollPane).addElement(directory);
                 renderer.updateFilesScrollPane(directory);
                 connectToFtpButton.setText("Disconnect");
-                changeButtonActionListener(disconnectMouseListener(renderer));
+                changeButtonActionListener(disconnectMouseListener(ftpClient, renderer));
             }
-        } catch (UnknownHostException p) {
-            FtpServerOptionPane optionPane = new FtpServerOptionPane();
-            tryToConnectToFtp(optionPane.showConfirmDialog(connectToFtpButton), renderer);
-            p.printStackTrace();
+        } catch (UnknownHostException e) {
+            showErrorMessage("Invalid host, try again", e);
+        } catch (NumberFormatException e) {
+            showErrorMessage("Invalid port", e);
+        } catch (ConnectException e) {
+            showErrorMessage(e.getMessage(), e);
         } catch (IOException e) {
-            e.printStackTrace();
+            showErrorMessage("Unknown error, try later", e);
         }
+    }
+
+    private void showErrorMessage(String message, Exception e) {
+        JOptionPane optionPane = new JOptionPane(message, JOptionPane.ERROR_MESSAGE);
+        JDialog dialog = optionPane.createDialog("Error while connecting");
+        dialog.setAlwaysOnTop(true);
+        dialog.setVisible(true);
+        e.printStackTrace();
     }
 
     private FTPClient createFtpClient(FtpServerOptionPane.FtpServerOption option) throws IOException {
         FTPClient ftpClient = new FTPClient();
-        ftpClient.setAutodetectUTF8(true);
-        ftpClient.enterLocalPassiveMode();
         if (option.getPort() != null) {
             ftpClient.connect(option.getHost(), option.getPort());
         } else {
             ftpClient.connect(option.getHost());
         }
+        ftpClient.enterLocalPassiveMode();
         ftpClient.login(option.getLogin(), option.getPassword());
+        ftpClient.setAutodetectUTF8(true);
+        if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
+            throw new ConnectException(ftpClient.getReplyString());
+        }
         return ftpClient;
     }
 
     /**
-     * Действие, отвечающие за кнопку отключение от ftp сервера и возвращение в локальную рутовую директорию
+     * The action responsible for the disconnecting button from the ftp server
+     * and returning to the local root directory.
      */
-    private ActionListener disconnectMouseListener(Renderer renderer) {
+    private ActionListener disconnectMouseListener(FTPClient ftpClient, Renderer renderer) {
         return e -> {
+            try {
+                ftpClient.disconnect();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
             FtpFileDirectory.clearCache();
             renderer.clearFileScrollPane();
             List<Directory> allRootDirectories = getAllRootDirectories();
@@ -220,10 +240,6 @@ public class DirectoryView {
         }
     }
 
-    /**
-     * @return Очищенный контейнер, в который могут быть положены новые данные, для отображения
-     * на панели с диреткориями.
-     */
     private DefaultListModel<Directory> getClearedDirectory(JScrollPane scrollPane) {
         JList<Directory> displayDirectory = (JList<Directory>) scrollPane.getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();
