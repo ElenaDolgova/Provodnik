@@ -3,18 +3,27 @@ package gui;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class PreviewPanelView {
+public class PreviewPanelView implements View{
     private static final int MAX_TEXT_LINES = 20;
     private final JPanel previewPanel = new JPanel(new GridBagLayout());
     private final JLabel image = new JLabel();
-
     private final JTextArea textArea = new JTextArea();
 
     public void init() {

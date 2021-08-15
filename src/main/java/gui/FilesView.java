@@ -4,9 +4,32 @@ import exception.FileProcessingException;
 import model.Directory;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneLayout;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -15,7 +38,7 @@ import java.util.EventObject;
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 
-public class FilesView {
+public class FilesView implements View {
     private final JPanel mainFileScrollPane;
     private final JScrollPane fileScrollPane;
     private final JPanel northPanel;
@@ -107,7 +130,7 @@ public class FilesView {
     }
 
     /**
-     * Листенер для хождения по файлам в файловом скролле с помощью клавищ
+     * Listener for navigating through files in the file scroll using the keys.
      */
     public KeyListener displayFilesListener(Renderer renderer) {
         return new KeyListener() {
@@ -133,11 +156,12 @@ public class FilesView {
     }
 
     /**
-     * Метод отрисовывает новую директорию на скролле с директориями и заполняет файлами файловый скролл
-     * ИЛИ
-     * выводит превью файла на панель с превью
+     * The method draws a new directory on the {@link gui.DirectoryView#directoryScrollPane}
+     * and fills the {@link #fileScrollPane} with files.
+     * OR
+     * show preview on {@link gui.PreviewPanelView#previewPanel}
      *
-     * @param inputEvent выбранный элемент файлового скролла
+     * @param inputEvent the selected element
      */
     private void fileScrollEvent(InputEvent inputEvent, Renderer renderer) {
         previewPanelView.hideContent();

@@ -8,7 +8,7 @@ import java.awt.*;
 import java.util.Objects;
 
 /**
- * Панель подключения к ftp серверу
+ * The panel for connecting to the ftp server.
  */
 public final class FtpServerOptionPane {
     private final JTextField hostField;

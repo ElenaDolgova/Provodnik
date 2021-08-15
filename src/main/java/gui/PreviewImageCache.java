@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.ImageIcon;
-import java.awt.*;
+import java.awt.Image;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -19,21 +19,17 @@ public class PreviewImageCache {
 
     public void computeAndCacheAsync(String path, int width, int height, Supplier<Image> getter) {
         executor.execute(() -> {
-            try {
-                Image img = getter.get();
-                if (img != null) {
-                    cache.putIfAbsent(String.format("%s__%dx%d", path, width, height), new ImageIcon(img.getScaledInstance(width, -1, Image.SCALE_SMOOTH)));
-                    cache.putIfAbsent(
-                            String.format("%s__%dx%d", path, Dimensions.FILE_ICON_SIZE, Dimensions.FILE_ICON_SIZE),
-                            new ImageIcon(img.getScaledInstance(
-                                    Dimensions.FILE_ICON_SIZE,
-                                    Dimensions.FILE_ICON_SIZE,
-                                    Image.SCALE_FAST
-                            ))
-                    );
-                }
-            } catch (Exception e) {
-                e.printStackTrace(); //TODO сделать что-то нормальное
+            Image img = getter.get();
+            if (img != null) {
+                cache.putIfAbsent(String.format("%s__%dx%d", path, width, height), new ImageIcon(img.getScaledInstance(width, -1, Image.SCALE_SMOOTH)));
+                cache.putIfAbsent(
+                        String.format("%s__%dx%d", path, Dimensions.FILE_ICON_SIZE, Dimensions.FILE_ICON_SIZE),
+                        new ImageIcon(img.getScaledInstance(
+                                Dimensions.FILE_ICON_SIZE,
+                                Dimensions.FILE_ICON_SIZE,
+                                Image.SCALE_FAST
+                        ))
+                );
             }
         });
     }

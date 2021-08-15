@@ -20,24 +20,24 @@ import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectoryView {
+public class DirectoryView implements View {
     /**
-     * Самая левая панель, на которой расположены сверху вниз:
-     * - Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков) {@link #rootsScrollPane}
-     * - Скролл с путем открытых директорий {@link #directoryScrollPane}
-     * - Кнопка подключения/отключения от ftp сервера {@link #connectToFtpButton}
+     * The leftmost panel, which is located from top to bottom:
+     * - Scroll with rooted directories (It is relevant for the OS with several disks) {@link #rootsScrollPane}
+     * - Scroll with open directories {@link #directoryScrollPane}
+     * - The button for connecting/disconnecting from the ftp server {@link #connectToFtpButton}
      */
     private final JSplitPane mainDirectoryPane;
     /**
-     * Скролл с рутовыми директориями (актуально для ос имеешь несколько основыных дисков)
+     * Scroll with rooted directories (It is relevant for the OS with several disks) {@link #rootsScrollPane}
      */
     private final JScrollPane rootsScrollPane;
     /**
-     * Скролл с путем открытых директорий
+     * Scroll with open directories {@link #directoryScrollPane}
      */
     private JScrollPane directoryScrollPane;
     /**
-     * Кнопка подключения/отключения от ftp сервера
+     * The button for connecting/disconnecting from the ftp server {@link #connectToFtpButton}
      */
     private final JButton connectToFtpButton;
 
@@ -95,10 +95,9 @@ public class DirectoryView {
     }
 
     /**
-     * Метод вызывается при клике на определенный элемент на панели с директориями.
-     * При это если пользователь нажал на не листовую директорию,
-     * то директории перестают отображаться ровно до выбранной, и на панели с просмоторщиком файлов начинают
-     * отображаться файлы выбранной директории.
+     * The method is called when a specific element is clicked on the panel with directories.
+     * And if the user clicked on a non-leaf directory,
+     * the directories stop being displayed exactly until the selected one.
      */
     private MouseAdapter getDirectoryListener(Renderer renderer) {
         return new MouseAdapter() {
@@ -128,17 +127,15 @@ public class DirectoryView {
     }
 
     /**
-     * Удаляет листовую директорию
+     * Deletes the leaf directory.
      */
     public static void removeLastElementFromDirectory(Renderer renderer) {
-        //схлопываем директорию до нажатой
         Directory directory = renderer.squeezeDirectoriesByOne();
-        // обновляем содержимое панели с файлами
         renderer.updateFilesScrollPane(directory);
     }
 
     /**
-     * Листенер для кнопки подключения к ftp серверу
+     * Listener for the connecting to ftp server button.
      */
     private ActionListener getFtpButtonMouseListener(Renderer renderer) {
         return e -> {
@@ -212,7 +209,8 @@ public class DirectoryView {
     }
 
     /**
-     * Действие, отвечающие за кнопку отключение от ftp сервера и возвращение в локальную рутовую директорию
+     * The action responsible for the disconnecting button from the ftp server
+     * and returning to the local root directory.
      */
     private ActionListener disconnectMouseListener(FTPClient ftpClient, Renderer renderer) {
         return e -> {
@@ -243,10 +241,6 @@ public class DirectoryView {
         }
     }
 
-    /**
-     * @return Очищенный контейнер, в который могут быть положены новые данные, для отображения
-     * на панели с диреткориями.
-     */
     private DefaultListModel<Directory> getClearedDirectory(JScrollPane scrollPane) {
         JList<Directory> displayDirectory = (JList<Directory>) scrollPane.getViewport().getView();
         DefaultListModel<Directory> sourceModel = (DefaultListModel<Directory>) displayDirectory.getModel();

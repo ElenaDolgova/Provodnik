@@ -20,9 +20,9 @@ import java.util.function.Consumer;
 public class FtpFileDirectory implements Directory {
     private static final int FTP_BATCH_SIZE = 300;
     /**
-     * Закешированные скачанные zip-архивы с ftp-серверов.
-     * Если пользователь решил заново открыть уже до этого скачанный файл, то качать заново его не придется,
-     * он будет взят из кеша.
+     * Cached downloaded zip archives from ftp servers.
+     * If the user decided to re-open the previously downloaded file,
+     * then it will not have to be downloaded again, it will be taken from the cache.
      */
     private static final Map<String, File> CACHED_FILES = new HashMap<>();
 
@@ -37,11 +37,12 @@ public class FtpFileDirectory implements Directory {
     }
 
     /**
-     * На ftp серверах за списком файлом ходим побатчево и отрисовываем переданными батчами.
-     * Делается для того, чтобы пользователь долго не ждал отрисовки, когда размер директории достаточно большой
+     * On ftp servers, we go after the list of files by default and draw them with the transferred butches.
+     * This is done so that the user does not wait for a long time for rendering,
+     * when the size of the directory is large enough
      *
-     * @param batchAction консьюмер, обрабатывающий вернувшиеся батчи файлов из текущей директории
-     * @param ext         расширение файлов, которые нужно вернуть
+     * @param batchAction consumer that processes returned files from the current directory
+     * @param ext         filter by extension
      */
     @Override
     public void getFiles(Consumer<List<? extends Directory>> batchAction, String ext) {
@@ -94,8 +95,8 @@ public class FtpFileDirectory implements Directory {
     }
 
     /**
-     * @return возвращает файл, который был скачан ранее и закеширован, или
-     * скачивает файл, кеширует его и возвращает обратно
+     * @return returns a file that was downloaded earlier and cached or
+     * downloads the file, caches it, and returns it back
      */
     private File getFileFromCacheOrDownload(String suffix) {
         return CACHED_FILES.computeIfAbsent(path, path -> {
@@ -168,7 +169,8 @@ public class FtpFileDirectory implements Directory {
     }
 
     /**
-     * Очистка кеша. Например, после отключения от ftp сервера
+     * Clearing the cache.
+     * For example, after disconnecting from the ftp server.
      */
     public static void clearCache() {
         CACHED_FILES.clear();

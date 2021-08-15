@@ -30,9 +30,10 @@ public class Renderer {
     }
 
     /**
-     * Метод добавляет на таб с директориями новый узел и обновляет список файлов каталога
+     * The method adds a new node to the {@link gui.DirectoryView#directoryScrollPane}
+     * and updates the list of files {@link gui.FilesView#fileScrollPane}
      *
-     * @param directory директория, в которой нужно обновить отображения файлов
+     * @param directory the directory for updating {@link gui.FilesView#fileScrollPane}
      */
     public void addNewDirectory(Directory directory) {
         JList<Directory> displayDirectory = (JList<Directory>) directoryView.getDirectoryScrollPane().getViewport().getView();
@@ -48,9 +49,9 @@ public class Renderer {
     }
 
     /**
-     * Чистим дерево директорий на скролле с директориями до переданного номера to
+     * Cleaning the directory tree on the scroll with directories up to the passed to {@param to}
      *
-     * @param to - до какого номера в дереве директорий убирать директории
+     * @param to up to what number in the directory tree should removing directories
      */
     public void squeezeDirectories(int to) {
         DefaultListModel<Directory> sourceModel = getModel(directoryView.getDirectoryScrollPane());
@@ -60,10 +61,9 @@ public class Renderer {
     }
 
     /**
-     * Метод убирает листовой елемент из скролла с директориями
-     * Из дерева директорий нельзя убрать рут
+     * The method removes the leaf element from the scroll with directories
      *
-     * @return последний оставшийся елемент в диреткории
+     * @return the last remaining element in the directory
      */
     public Directory squeezeDirectoriesByOne() {
         DefaultListModel<Directory> sourceModel = getModel(directoryView.getDirectoryScrollPane());
@@ -74,9 +74,9 @@ public class Renderer {
     }
 
     /**
-     * Метод обновляет файлы для текущей диретории
+     * The method updates the files for the current directory
      *
-     * @param directory Директория, файлы для которой нужно обновить
+     * @param directory the directory for which the files need to be updated
      */
     public void updateFilesScrollPane(Directory directory) {
         DefaultListModel<Directory> sourceModel = getModel(filesView.getFileScrollPane());
@@ -84,9 +84,9 @@ public class Renderer {
     }
 
     /**
-     * Метод обнолвяет файлы самой последней директории с учетом фильтра по расширению
+     * The method updates the files of the last directory taking into account the filter by extension
      *
-     * @param ext Расширение, по которому нужно пофильтровать файлы
+     * @param ext filter by extension
      */
     public void updateFilesScrollPane(String ext) {
         DefaultListModel<Directory> sourceModel = getModel(filesView.getFileScrollPane());
@@ -99,13 +99,12 @@ public class Renderer {
 
 
     /**
-     * Метода обновляет файлы на табе с файловым скролом.
-     * При этом во время загрузки запускается процесс отрисовки спинера, если обновление файла будет занимать долгое время.
-     * Например, когда происходит подгрузка файлов с удаленного сервера
+     * The method updates the files on the tab with a file scroll {@link gui.FilesView#fileScrollPane}
+     * At the same time, the process of drawing the spinner starts during loading.
      *
-     * @param resource  обноляемый ресур файлового скролла
-     * @param directory директория, из которй берутся файлы
-     * @param ext       фильтр по расширению
+     * @param resource  updated file scroll resource
+     * @param directory the directory from which the files are taken
+     * @param ext       filter by extension
      */
     private void updateFiles(DefaultListModel<Directory> resource, Directory directory, String ext) {
         SwingUtilities.invokeLater(() -> setSpinnerVisible(true));
@@ -128,7 +127,7 @@ public class Renderer {
                                                         () -> {
                                                             final Image[] imageIcon = new Image[1];
                                                             directory.processFile(in ->
-                                                                    imageIcon[0] = previewPanelView.getImage(in),
+                                                                            imageIcon[0] = previewPanelView.getImage(in),
                                                                     probeContentType
                                                             );
                                                             return imageIcon[0];
@@ -155,7 +154,8 @@ public class Renderer {
     }
 
     /**
-     * Очищаем панель с файлами и скрываем превью информацию
+     * Clearing the panel with files {@link gui.FilesView#fileScrollPane}
+     * and hiding the preview information {@link gui.PreviewPanelView#previewPanel}
      */
     public void clearFileScrollPane() {
         JList<Directory> links = (JList<Directory>) filesView.getFileScrollPane().getViewport().getView();
@@ -167,7 +167,8 @@ public class Renderer {
     }
 
     /**
-     * Обновляется панель с отображением текстового файла или изображения
+     * Updating the panel with the display of a text file {@link gui.PreviewPanelView#textArea}
+     * or image {@link gui.PreviewPanelView#image}
      */
     public void updatePreviewPanel(String probeContentType, Directory directory) {
         try {
@@ -180,7 +181,7 @@ public class Renderer {
                         () -> {
                             final Image[] imageIcon = new Image[1];
                             directory.processFile(in ->
-                                    imageIcon[0] = previewPanelView.getImage(in),
+                                            imageIcon[0] = previewPanelView.getImage(in),
                                     probeContentType);
                             return imageIcon[0];
                         });

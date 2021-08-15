@@ -1,27 +1,27 @@
 package gui;
 
 /**
- * Класс с основными размерами окон
+ * A class with the window sizes
  */
 public final class Dimensions {
     /**
-     * Ширина основного окна
+     * Width of the main window
      */
     public static final int MAIN_WIDTH = 1000;
     /**
-     * Высота основного окна
+     * Height of the main window
      */
     public static final int MAIN_HEIGHT = 600;
     /**
-     * Ширина окна панели с превью
+     * Width of the preview panel window
      */
     public static final int PREVIEW_PANEL_WIDTH = MAIN_WIDTH / 6 * 3;
     /**
-     * Высота окна панели с превью
+     * Height of the preview panel window
      */
     public static final int PREVIEW_PANEL_HEIGHT = MAIN_HEIGHT;
     /**
-     * Ширина и высота иконки c файлом
+     * Width and height of the icon with the file
      */
     public static final int FILE_ICON_SIZE = 15;
 }
